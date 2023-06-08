@@ -14,8 +14,8 @@ num_agents = 10  # the number of agents that will be spawned in the environment
 agent_fuel_low_range = 400  # Fuel will be randomly assigned to each agent, but the user gets to decide the range of the fuel
 agent_fuel_high_range = 1000
 view_range = 10  # an agent has a viewing range, so if they see a target/trap (they don't know the difference) they move towards it.
-death_rate = 0.0008  # the float rate at which each turn/move die/despawn during the game
-birth_rate = 0.0012  # the float rate at which agents are randomly spawned in with the fuel range that was earlier specified
+death_rate = 0.002  # the float rate at which each turn/move die/despawn during the game
+birth_rate = 0.004  # the float rate at which agents are randomly spawned in with the fuel range that was earlier specified
 generation_period = 500  # After a certain number of moves, the agents that the user specified are spawned again with the same fuel ranges
 inheritance_type = "distribute, agent with least fuel, agent with most fuel, random"  # when an agent dies randomly or from traps, their fuel will be transferred to agents depending on the type the user selects
 
@@ -80,21 +80,47 @@ while running:
     for agent in agents:
         agent.move_randomly()
         agent.fuel -= 1
-        if agent.check_trap_collision(env.targets) or agent.fuel <= 0 or random.random() <= death_rate:
+        if agent.check_trap_collision(env.targets):
+            # Remove the trap from the targets array
+            env.remove_target(agent.x, agent.y)
+            agents.remove(agent)
+            print("FROM TRAP:")
+            print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Death Time:", time, "Fuel:", agent.fuel)
+
+        
+        if agent.fuel <= 0:
             # Remove agent from agents array
+            agent.death_time = time
             agents.remove(agent)
             # Print agent information
-            print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Death Time:", time, "Fuel:", agent.fuel)
+            print("FROM FUEL:")
+            print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Death Time:", agent.death_time, "Fuel:", agent.fuel)
+
+
+    if random.random() <= death_rate:
+        # Remove agent from agents array
+        agent.death_time = time
+        agents.remove(agent)
+        # Print agent information
+        print("FROM DEATH RATE:")
+        print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Death Time:", agent.death_time, "Fuel:", agent.fuel)
+
+    if random.random() <= birth_rate:
+        env.generate_single_agent()
+        new_agent = env.agents[-1]
+        print("FROM BIRTH RATE:")
+        print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Fuel:", agent.fuel)
 
     # Draw agents
     for agent in agents:
         pygame.draw.rect(screen, BLACK, (agent.x * 7, agent.y * 7, 7, 7))
 
     pygame.display.flip()
-    clock.tick(500)
+    clock.tick(40)
 
     # Increment time
     time += 1
+    env.time += 1
 
     # Regenerate agents and targets after generation period
     if time % generation_period == 0:

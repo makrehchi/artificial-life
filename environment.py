@@ -33,6 +33,16 @@ class Environment:
             fuel = random.randint(self.agent_fuel_low_range, self.agent_fuel_high_range)
             agent = Agent(agent_id, x, y, self.time, fuel, self)
             self.agents.append(agent)
+            agent.birth_time = self.time
+    
+    def generate_single_agent(self):
+        agent_id = self.get_unique_agent_id()
+        x = random.randint(0, self.grid_x - 1)
+        y = random.randint(0, self.grid_y - 1)
+        fuel = random.randint(self.agent_fuel_low_range, self.agent_fuel_high_range)
+        agent = Agent(agent_id, x, y, self.time, fuel, self)
+        self.agents.append(agent)
+        agent.birth_time = self.time
 
     def get_unique_agent_id(self):
         # Generate a unique agent ID using a combination of letters and numbers
@@ -57,3 +67,12 @@ class Environment:
             y = random.randint(0, self.grid_y - 1)
             target = Target(x, y, is_resource=False)
             self.targets.append(target)
+    
+    def remove_target(self, x, y):
+        target_to_remove = None
+        for target in self.targets:
+            if target.x == x and target.y == y and not target.is_resource:
+                target_to_remove = target
+                break
+        if target_to_remove:
+            self.targets.remove(target_to_remove)
