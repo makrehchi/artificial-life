@@ -91,7 +91,7 @@ while running:
         pygame.draw.rect(screen, BLACK, (agent.x * 7, agent.y * 7, 7, 7))
 
     pygame.display.flip()
-    clock.tick(50)
+    clock.tick(500)
 
     # Increment time
     time += 1

@@ -22,16 +22,26 @@ class Environment:
         self.time = 0
         self.agents = []
         self.targets = []
+        self.agent_id_counter = 0  # Counter to track the unique IDs of agents
 
     def generate_agents(self):
-        # Generate instances of the Agent class with unique IDs and random spawn coordinates
-        for i in range(self.num_agents):
-            agent_id = string.ascii_uppercase[i]  # Use uppercase letters as agent IDs
+        # Generate new instances of the Agent class with unique IDs and random spawn coordinates
+        for _ in range(self.num_agents):
+            agent_id = self.get_unique_agent_id()
             x = random.randint(0, self.grid_x - 1)
             y = random.randint(0, self.grid_y - 1)
             fuel = random.randint(self.agent_fuel_low_range, self.agent_fuel_high_range)
             agent = Agent(agent_id, x, y, self.time, fuel, self)
             self.agents.append(agent)
+
+    def get_unique_agent_id(self):
+        # Generate a unique agent ID using a combination of letters and numbers
+        agent_id_length = 3  # Define the length of the agent ID
+        characters = string.ascii_uppercase + string.digits  # Use uppercase letters and digits
+        agent_id = ''.join(random.choices(characters, k=agent_id_length))
+        while agent_id in [agent.agent_id for agent in self.agents]:
+            agent_id = ''.join(random.choices(characters, k=agent_id_length))
+        return agent_id
 
     def generate_targets(self):
         # Generate instances of the Target class
