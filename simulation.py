@@ -10,6 +10,9 @@ grid_y = 100  # The y coordinate of the simulation grid
 num_resources = 15  # the number of resources that the agents collect and get fuel from
 resource_size = 100  # the amount of fuel that the agents get when they collect the fuel
 num_traps = 5  # when an agent collects this, they die
+barrier_type = "dynamic" # static or dynamic
+num_barriers = 200 # for dynamic enter number of barriers, for static enter the exact coordinates
+barriers = [(35,42), (35,43), (35,44), (35,45), (35,46), (35,47), (35,48), (35,49), (35,50), (35,51), (35,52), (35,53), (78, 72), (79, 72), (80, 72), (81, 72), (82, 72), (83, 72), (84, 72), (85, 72), (86, 72), (87, 72), (88, 72), (89, 72)]
 num_agents = 10  # the number of agents that will be spawned in the environment
 agent_fuel_low_range = 400  # Fuel will be randomly assigned to each agent, but the user gets to decide the range of the fuel
 agent_fuel_high_range = 1000
@@ -20,10 +23,12 @@ generation_period = 500  # After a certain number of moves, the agents that the 
 inheritance_type = "distribute, agent with least fuel, agent with most fuel, random"  # when an agent dies randomly or from traps, their fuel will be transferred to agents depending on the type the user selects
 
 time = 0  # the time of the simulation
+if barrier_type == "dynamic":
+    barriers = [(random.randint(0, grid_x - 1), random.randint(0, grid_y - 1)) for _ in range(num_barriers)]
 
 # Create an instance of the Environment class
 env = Environment(grid_x, grid_y, num_resources, resource_size, num_traps, num_agents, agent_fuel_low_range,
-                  agent_fuel_high_range, view_range, death_rate, birth_rate, generation_period, inheritance_type)
+                  agent_fuel_high_range, view_range, death_rate, birth_rate, generation_period, inheritance_type, barriers)
 
 # Generate agents and targets in the environment
 env.generate_agents()
@@ -48,11 +53,13 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode((scaled_grid_x, scaled_grid_y))
 pygame.display.set_caption("Grid Simulation")
 
+
 # Define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+GRAY = (169, 169, 169)
 
 
 def print_environment_stats(env):
@@ -69,6 +76,10 @@ while running:
 
     screen.fill(WHITE)
 
+    # Draw barriers
+    for barrier_cell in barriers:
+        pygame.draw.rect(screen, GRAY, (barrier_cell[0] * 7, barrier_cell[1] * 7, 7, 7))
+
     # Draw targets
     for target in targets:
         if target.is_resource:
@@ -81,7 +92,6 @@ while running:
         agent.move_randomly()
         agent.fuel -= 1
         if agent.check_trap_collision(env.targets):
-            # Remove the trap from the targets array
             env.remove_target(agent.x, agent.y)
             agents.remove(agent)
             print("FROM TRAP:")
@@ -89,19 +99,15 @@ while running:
 
         
         if agent.fuel <= 0:
-            # Remove agent from agents array
             agent.death_time = time
             agents.remove(agent)
-            # Print agent information
             print("FROM FUEL:")
             print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Death Time:", agent.death_time, "Fuel:", agent.fuel)
 
 
     if random.random() <= death_rate:
-        # Remove agent from agents array
         agent.death_time = time
-        agents.remove(agent)
-        # Print agent information
+        agents.remove(agent)    
         print("FROM DEATH RATE:")
         print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Death Time:", agent.death_time, "Fuel:", agent.fuel)
 

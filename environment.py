@@ -5,7 +5,7 @@ from target import Target
 
 class Environment:
     def __init__(self, grid_x, grid_y, num_resources, resource_size, num_traps, num_agents, agent_fuel_low_range,
-                 agent_fuel_high_range, view_range, death_rate, birth_rate, generation_period, inhertiance_type):
+                 agent_fuel_high_range, view_range, death_rate, birth_rate, generation_period, inhertiance_type, barriers):
         self.grid_x = grid_x
         self.grid_y = grid_y
         self.num_resources = num_resources
@@ -23,6 +23,7 @@ class Environment:
         self.agents = []
         self.targets = []
         self.agent_id_counter = 0  # Counter to track the unique IDs of agents
+        self.barriers = barriers
 
     def generate_agents(self):
         # Generate new instances of the Agent class with unique IDs and random spawn coordinates
@@ -42,7 +43,7 @@ class Environment:
         fuel = random.randint(self.agent_fuel_low_range, self.agent_fuel_high_range)
         agent = Agent(agent_id, x, y, self.time, fuel, self)
         self.agents.append(agent)
-        agent.birth_time = self.time
+        
 
     def get_unique_agent_id(self):
         # Generate a unique agent ID using a combination of letters and numbers
