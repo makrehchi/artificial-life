@@ -1,9 +1,6 @@
-import pygame
-import random
+import pygame, random
 
 from environment import Environment
-from agent import Agent
-from target import Target
 
 grid = (200, 100)  # The size of the grid
 num_resources = 15  # the number of resources that the agents collect and get fuel from
@@ -12,7 +9,7 @@ num_traps = 5  # when an agent collects this, they die
 barrier_type = "dynamic" # static or dynamic
 num_barriers = 200 # for dynamic enter number of barriers, for static enter the exact coordinates
 barriers = [(35,42), (35,43), (35,44), (35,45), (35,46), (35,47), (35,48), (35,49), (35,50), (35,51), (35,52), (35,53), (78, 72), (79, 72), (80, 72), (81, 72), (82, 72), (83, 72), (84, 72), (85, 72), (86, 72), (87, 72), (88, 72), (89, 72)]
-num_agents = 100  # the number of agents that will be spawned in the environment
+num_agents = 20  # the number of agents that will be spawned in the environment
 agent_fuel_low_range = 400  # Fuel will be randomly assigned to each agent, but the user gets to decide the range of the fuel
 agent_fuel_high_range = 1000
 view_range = 10  # an agent has a viewing range, so if they see a target/trap (they don't know the difference) they move towards it.
@@ -60,6 +57,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 GRAY = (169, 169, 169)
+LIGHT_GRAY = (249, 249, 249)
 
 # print environment stats
 def print_environment_stats(env):
@@ -104,21 +102,13 @@ while running:
 
     screen.fill(WHITE)
 
-    # Draw barriers
-    for barrier_cell in barriers:
-        pygame.draw.rect(screen, GRAY, (barrier_cell[0] * 7, barrier_cell[1] * 7, 7, 7))
-
-    # Draw targets
-    for target in targets:
-        if target.is_resource:
-            pygame.draw.rect(screen, GREEN, (target.x * 7, target.y * 7, 7, 7))
-        else:
-            pygame.draw.rect(screen, RED, (target.x * 7, target.y * 7, 7, 7))
-
     # Move agents and check for trap collision
     for agent in agents:
         agent.move_randomly()
         agent.fuel -= 1
+        # Collect fuel if there is a resource/target on the current block
+        agent.collect_fuel()
+        # Check for trap collision
         if agent.check_trap_collision(env.targets):
             env.remove_target(agent.x, agent.y)
             fuel_to_inherit = agent.fuel
@@ -149,12 +139,28 @@ while running:
         print("FROM BIRTH RATE:")
         print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Fuel:", agent.fuel)
 
+    for agent in agents:
+        pygame.draw.circle(screen, LIGHT_GRAY, (agent.x * 7 + 3, agent.y * 7 + 3), 35)
+    
+    # Draw barriers
+    for barrier_cell in barriers:
+        pygame.draw.rect(screen, GRAY, (barrier_cell[0] * 7, barrier_cell[1] * 7, 7, 7))
+
+    # Draw targets
+    for target in targets:
+        target_pos = (target.x * 7 + 3, target.y * 7 + 3)
+        target_radius = 3
+        if target.is_resource:
+            pygame.draw.circle(screen, GREEN, target_pos, target_radius)
+        else:
+            pygame.draw.circle(screen, RED, target_pos, target_radius)
+
     # Draw agents
     for agent in agents:
-        pygame.draw.rect(screen, BLACK, (agent.x * 7, agent.y * 7, 7, 7))
+        pygame.draw.circle(screen, BLACK, (agent.x * 7 + 3, agent.y * 7 + 3), 4)
 
     pygame.display.flip()
-    clock.tick(40)
+    clock.tick(20)
 
     # Increment time
     time += 1

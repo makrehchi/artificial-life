@@ -35,7 +35,7 @@ class Environment:
             agent = Agent(agent_id, x, y, self.time, fuel, self)
             self.agents.append(agent)
             agent.birth_time = self.time
-    
+
     def generate_single_agent(self):
         agent_id = self.get_unique_agent_id()
         x = random.randint(0, self.grid_x - 1)
@@ -43,16 +43,17 @@ class Environment:
         fuel = random.randint(self.agent_fuel_low_range, self.agent_fuel_high_range)
         agent = Agent(agent_id, x, y, self.time, fuel, self)
         self.agents.append(agent)
-        
 
     def get_unique_agent_id(self):
-        # Generate a unique agent ID using a combination of letters and numbers
+        # Generate a unique agent ID using a combination of three capital letters
         agent_id_length = 3  # Define the length of the agent ID
-        characters = string.ascii_uppercase + string.digits  # Use uppercase letters and digits
+        characters = string.ascii_uppercase  # Use only uppercase letters
         agent_id = ''.join(random.choices(characters, k=agent_id_length))
-        while agent_id in [agent.agent_id for agent in self.agents]:
+        used_ids = [agent.agent_id for agent in self.agents if not agent.is_dead]
+        while agent_id in used_ids:
             agent_id = ''.join(random.choices(characters, k=agent_id_length))
         return agent_id
+
 
     def generate_targets(self):
         # Generate instances of the Target class
@@ -68,7 +69,7 @@ class Environment:
             y = random.randint(0, self.grid_y - 1)
             target = Target(x, y, is_resource=False)
             self.targets.append(target)
-    
+
     def remove_target(self, x, y):
         target_to_remove = None
         for target in self.targets:
