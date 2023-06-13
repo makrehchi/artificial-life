@@ -2,23 +2,24 @@ import pygame, random
 
 from environment import Environment
 
-grid = (200, 100)  # The size of the grid
-num_resources = 15  # the number of resources that the agents collect and get fuel from
-resource_size = 100  # the amount of fuel that the agents get when they collect the fuel
-num_traps = 5  # when an agent collects this, they die
-barrier_type = "dynamic" # static or dynamic
+grid = (200, 100)
+num_resources = 15 
+resource_size = 100
+num_traps = 10
+barrier_type = "static" # static or dynamic
 num_barriers = 200 # for dynamic enter number of barriers, for static enter the exact coordinates
 barriers = [(35,42), (35,43), (35,44), (35,45), (35,46), (35,47), (35,48), (35,49), (35,50), (35,51), (35,52), (35,53), (78, 72), (79, 72), (80, 72), (81, 72), (82, 72), (83, 72), (84, 72), (85, 72), (86, 72), (87, 72), (88, 72), (89, 72)]
-num_agents = 20  # the number of agents that will be spawned in the environment
-agent_fuel_low_range = 400  # Fuel will be randomly assigned to each agent, but the user gets to decide the range of the fuel
+num_agents = 20
+agent_fuel_low_range = 400
 agent_fuel_high_range = 1000
-view_range = 10  # an agent has a viewing range, so if they see a target/trap (they don't know the difference) they move towards it.
-death_rate = 0.002  # the float rate at which each turn/move die/despawn during the game
-birth_rate = 0.004  # the float rate at which agents are randomly spawned in with the fuel range that was earlier specified
-generation_period = 500  # After a certain number of moves, the agents that the user specified are spawned again with the same fuel ranges
-inheritance_type = "random"  # (distribute, agent with least fuel, agent with most fuel, random) when an agent dies randomly or from traps, their fuel will be transferred to agents depending on the type the user selects
+view_range = 10
+death_rate = 0.002
+birth_rate = 0.008
+generation_period = 500
+inheritance_type = "random"  # distribute, agent_with_least_fuel, agent_with_most_fuel, random
 
-time = 0  # the time of the simulation
+
+time = 0
 grid_x, grid_y = grid
 if barrier_type == "dynamic":
     barriers = [(random.randint(0, grid_x - 1), random.randint(0, grid_y - 1)) for _ in range(num_barriers)]
@@ -61,8 +62,8 @@ LIGHT_GRAY = (249, 249, 249)
 
 # print environment stats
 def print_environment_stats(env):
-    print("Number of Targets:", len(env.targets))
-    print("Number of Agents:", len(env.agents))
+    print("\033[1;33mNumber of Targets:", len(env.targets), "\033[0m")
+    print("\033[1;33mNumber of Agents:", len(env.agents), "\033[0m")
 
 # Inherit fuel from dead agents to alive agents depending on the inheritance type
 def inherit_fuel(agent, fuel_to_inherit, inheritance_type, agents):
@@ -72,25 +73,25 @@ def inherit_fuel(agent, fuel_to_inherit, inheritance_type, agents):
             fuel_to_add = fuel_to_inherit // num_alive_agents
             for alive_agent in agents:
                 alive_agent.fuel += fuel_to_add
-            print("Agent", agent.agent_id, "died.", "Inherited", fuel_to_inherit, "Using", inheritance_type, "went to all agents")
+            print("\033[1;33mAgent", agent.agent_id, "expired with", fuel_to_inherit, "fuel, which was distributed across all agents.\033[0m")
 
     elif inheritance_type == "agent_with_least_fuel":
         if len(agents) > 0:
             agent_with_least_fuel = min(agents, key=lambda a: a.fuel)
             agent_with_least_fuel.fuel += fuel_to_inherit
-            print("Agent", agent.agent_id, "died.", "Inherited", fuel_to_inherit, "Using", inheritance_type, "went to agent with least fuel:", agent_with_least_fuel.agent_id)
+            print("\033[1;33mAgent", agent.agent_id, "expired with", fuel_to_inherit, "fuel, which was inherited by agent with the least fuel:", agent_with_least_fuel.agent_id, "\033[0m")
 
     elif inheritance_type == "agent_with_most_fuel":
         if len(agents) > 0:
             agent_with_most_fuel = max(agents, key=lambda a: a.fuel)
             agent_with_most_fuel.fuel += fuel_to_inherit
-            print("Agent", agent.agent_id, "died.", "Inherited", fuel_to_inherit, "Using", inheritance_type, "went to agent with most fuel:", agent_with_most_fuel.agent_id)
+            print("\033[1;33mAgent", agent.agent_id, "expired with", fuel_to_inherit, "fuel, which was inherited by agent with the most fuel:", agent_with_most_fuel.agent_id, "\033[0m")
 
     elif inheritance_type == "random":
         if len(agents) > 0:
             random_agent = random.choice(agents)
             random_agent.fuel += fuel_to_inherit
-            print("Agent", agent.agent_id, "died.", "Inherited", fuel_to_inherit, "Using", inheritance_type, "went to random agent:", random_agent.agent_id)
+            print("\033[1;34mAgent", agent.agent_id, "expired with", fuel_to_inherit, "fuel, which was inherited by a random agent:", random_agent.agent_id, "\033[0m")
 
 
 # Run the simulation
@@ -113,34 +114,30 @@ while running:
             env.remove_target(agent.x, agent.y)
             fuel_to_inherit = agent.fuel
             agents.remove(agent)
-            print("FROM TRAP:")
-            print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Death Time:", time, "Fuel:", agent.fuel)
+            print("\033[1;31mAgent", agent.agent_id, "expired due to a trap at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", time, "and fuel of", agent.fuel, "\033[0m")
             inherit_fuel(agent, fuel_to_inherit, inheritance_type, agents)
 
         
         if agent.fuel <= 0:
             agent.death_time = time
             agents.remove(agent)
-            print("FROM FUEL:")
-            print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Death Time:", agent.death_time, "Fuel:", agent.fuel)
+            print("\033[1;31mAgent", agent.agent_id, "expired due to lack of fuel at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", agent.death_time, "\033[0m")
 
 
     if random.random() <= death_rate:
         agent.death_time = time
         fuel_to_inherit = agent.fuel
         agents.remove(agent)    
-        print("FROM DEATH RATE:")
-        print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Death Time:", agent.death_time, "Fuel:", agent.fuel)
+        print("\033[1;31mAgent", agent.agent_id, "expired at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", agent.death_time, "and fuel of", agent.fuel, "\033[0m")
         inherit_fuel(agent, fuel_to_inherit, inheritance_type, agents)
 
     if random.random() <= birth_rate:
         env.generate_single_agent()
         new_agent = env.agents[-1]
-        print("FROM BIRTH RATE:")
-        print("Agent ID:", agent.agent_id, "Coordinates:", agent.x, agent.y, "Birth Time:", agent.birth_time, "Fuel:", agent.fuel)
+        print("\033[1;32mAgent", agent.agent_id, "was spawned at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and fuel of", agent.fuel , "\033[0m")
 
     for agent in agents:
-        pygame.draw.circle(screen, LIGHT_GRAY, (agent.x * 7 + 3, agent.y * 7 + 3), 35)
+        pygame.draw.circle(screen, LIGHT_GRAY, (agent.x * 7 + 3, agent.y * 7 + 3), scaled_view_range)
     
     # Draw barriers
     for barrier_cell in barriers:
@@ -175,7 +172,7 @@ while running:
 
     # Print environment statistics
     if time % generation_period == 0:
-        print("Time:", time)
+        print("\033[1;33mTime:", time, "\033[0m")
         print_environment_stats(env)
 
 pygame.quit()

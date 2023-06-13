@@ -103,7 +103,7 @@ class Agent:
         # Check if there is a resource/target on the current block
         for target in self.environment.targets:
             if self.x == target.x and self.y == target.y and target.is_resource:
-                print("Agent", self.agent_id, "collected", target.size, "fuel from resource at", self.x, self.y)
+                print("\033[1;32mAgent", self.agent_id, "collected", target.size, "fuel from resource at coordinates:", "(" + str(self.x) + "," + str(self.y) + ")\033[0m")
                 # Collect fuel from the resource
                 self.fuel += target.size
                 # Remove the resource from the environment
