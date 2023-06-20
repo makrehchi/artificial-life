@@ -2,16 +2,22 @@ import pygame, random
 
 from environment import Environment
 
+
 grid = (200, 100)
 num_resources = 15 
 resource_size = 100
 num_traps = 10
 barrier_type = "static" # static or dynamic
 num_barriers = 200 # for dynamic enter number of barriers, for static enter the exact coordinates
-barriers = [(35,42), (35,43), (35,44), (35,45), (35,46), (35,47), (35,48), (35,49), (35,50), (35,51), (35,52), (35,53), (78, 72), (79, 72), (80, 72), (81, 72), (82, 72), (83, 72), (84, 72), (85, 72), (86, 72), (87, 72), (88, 72), (89, 72)]
+barriers = barriers = [
+    *[(x, 32) for x in range(20, 60)],
+    *[(x, 90) for x in range(130, 170)],
+    *[(40, y) for y in range(63, 93)],
+    *[(150, y) for y in range(20, 33)],
+]
 num_agents = 20
 agent_fuel_low_range = 400
-agent_fuel_high_range = 1000
+agent_fuel_high_range = 700
 view_range = 10
 death_rate = 0.002
 birth_rate = 0.008
@@ -113,9 +119,10 @@ while running:
         if agent.check_trap_collision(env.targets):
             env.remove_target(agent.x, agent.y)
             fuel_to_inherit = agent.fuel
-            agents.remove(agent)
-            print("\033[1;31mAgent", agent.agent_id, "expired due to a trap at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", time, "and fuel of", agent.fuel, "\033[0m")
-            inherit_fuel(agent, fuel_to_inherit, inheritance_type, agents)
+            if agent in agents:
+                agents.remove(agent)
+                print("\033[1;31mAgent", agent.agent_id, "expired due to a trap at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", time, "and fuel of", agent.fuel, "\033[0m")
+                inherit_fuel(agent, fuel_to_inherit, inheritance_type, agents)
 
         
         if agent.fuel <= 0:
@@ -157,7 +164,7 @@ while running:
         pygame.draw.circle(screen, BLACK, (agent.x * 7 + 3, agent.y * 7 + 3), 4)
 
     pygame.display.flip()
-    clock.tick(20)
+    clock.tick(50)
 
     # Increment time
     time += 1
