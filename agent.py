@@ -69,12 +69,22 @@ class Agent:
     def update_targets_in_sight(self):
         self.target_in_sight = []
         for target in self.environment.targets:
-            if self.is_in_range(target.x, target.y):
+            if self.is_in_range(target.x, target.y) and self.can_collect_target(target):
                 self.target_in_sight.append(target)
 
     def is_in_range(self, target_x, target_y):
         distance = sqrt((self.x - target_x) ** 2 + (self.y - target_y) ** 2)
         return distance <= self.environment.view_range
+
+    def can_collect_target(self, target):
+        if target.is_resource:
+            if target.agent_requirement and target.agent_requirement != self.agent_id:
+                return False
+            if target.fuel_required and self.fuel < target.fuel_required:
+                return False
+            if target.fuel_threshold and self.fuel >= target.fuel_threshold:
+                return False
+        return True
 
     def move_towards_target(self):
         target = random.choice(self.target_in_sight)
@@ -100,12 +110,13 @@ class Agent:
                 self.y = new_y
     
     def collect_fuel(self):
-        # Check if there is a resource/target on the current block
+        # Check if there is a resource on the agent's current block
         for target in self.environment.targets:
-            if self.x == target.x and self.y == target.y and target.is_resource:
-                print("\033[1;32mAgent", self.agent_id, "collected", target.size, "fuel from resource at coordinates:", "(" + str(self.x) + "," + str(self.y) + ")\033[0m")
-                # Collect fuel from the resource
-                self.fuel += target.size
-                # Remove the resource from the environment
-                self.environment.targets.remove(target)
-                break
+            if target.x == self.x and target.y == self.y:
+                if target.is_resource:
+                    # Check if the agent can collect the resource
+                    if self.can_collect_target(target):
+                        self.fuel += target.size
+                        self.environment.targets.remove(target)
+                        print("\033[1;36mAgent", self.agent_id, "collected a resource of size", target.size, "at coordinates:", "(" + str(self.x) + "," + str(self.y) + "). Fuel:", self.fuel, "\033[0m")
+                        break

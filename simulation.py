@@ -4,9 +4,14 @@ from environment import Environment
 
 
 grid = (200, 100)
-num_resources = 15 
+num_resources = 0
 resource_size = 100
-num_traps = 10
+num_traps = 0
+agent_specific_resource = 0
+fuel_requirement_resource = 0
+fuel_threshold_resource = 0
+fuel_required = 700
+fuel_threshold = 400
 barrier_type = "static" # static or dynamic
 num_barriers = 200 # for dynamic enter number of barriers, for static enter the exact coordinates
 barriers = barriers = [
@@ -32,7 +37,7 @@ if barrier_type == "dynamic":
 
 # Create an instance of the Environment class
 env = Environment(grid_x, grid_y, num_resources, resource_size, num_traps, num_agents, agent_fuel_low_range,
-                  agent_fuel_high_range, view_range, death_rate, birth_rate, generation_period, inheritance_type, barriers)
+                  agent_fuel_high_range, view_range, death_rate, birth_rate, generation_period, inheritance_type, barriers, agent_specific_resource, fuel_requirement_resource, fuel_threshold_resource, fuel_required, fuel_threshold)
 
 # Generate agents and targets in the environment
 env.generate_agents()
