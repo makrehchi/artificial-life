@@ -4,6 +4,3 @@ class Target:
         self.y = y
         self.is_resource = is_resource
         self.size = size
-        self.agent_requirement = agent_requirement
-        self.fuel_required = fuel_required
-        self.fuel_threshold = fuel_threshold

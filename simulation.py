@@ -3,31 +3,24 @@ import pygame, random
 from environment import Environment
 
 
-grid = (200, 100)
-num_resources = 0
+grid = (100, 100)
+num_resources = 50
 resource_size = 100
-num_traps = 0
-agent_specific_resource = 0
-fuel_requirement_resource = 0
-fuel_threshold_resource = 0
-fuel_required = 700
-fuel_threshold = 400
-barrier_type = "static" # static or dynamic
-num_barriers = 200 # for dynamic enter number of barriers, for static enter the exact coordinates
-barriers = barriers = [
-    *[(x, 32) for x in range(20, 60)],
-    *[(x, 90) for x in range(130, 170)],
-    *[(40, y) for y in range(63, 93)],
-    *[(150, y) for y in range(20, 33)],
+num_traps = 10
+barrier_type = "static"
+num_barriers = 100
+barriers = [
+    *[(x, 40) for x in range(20, 40)],
+    *[(x, 50) for x in range(60, 80)],
+    *[(x, 60) for x in range(100, 120)],
+    *[(x, 70) for x in range(140, 160)],
 ]
-num_agents = 20
-agent_fuel_low_range = 400
-agent_fuel_high_range = 700
-view_range = 10
-death_rate = 0.002
-birth_rate = 0.008
-generation_period = 500
-inheritance_type = "random"  # distribute, agent_with_least_fuel, agent_with_most_fuel, random
+num_agents = 30
+agent_fuel_low_range = 300
+agent_fuel_high_range = 800
+view_range = 15
+generation_period = 1000
+
 
 
 time = 0
@@ -37,7 +30,7 @@ if barrier_type == "dynamic":
 
 # Create an instance of the Environment class
 env = Environment(grid_x, grid_y, num_resources, resource_size, num_traps, num_agents, agent_fuel_low_range,
-                  agent_fuel_high_range, view_range, death_rate, birth_rate, generation_period, inheritance_type, barriers, agent_specific_resource, fuel_requirement_resource, fuel_threshold_resource, fuel_required, fuel_threshold)
+                  agent_fuel_high_range, view_range, generation_period, barriers)
 
 # Generate agents and targets in the environment
 env.generate_agents()
@@ -55,13 +48,11 @@ scaled_grid_x = grid_x * 7
 scaled_grid_y = grid_y * 7
 
 # Define the scaled view range
-view_range = 10  # an agent has a viewing range, so if they see a target/trap(they don't know the difference) they move towards it.
 scaled_view_range = view_range * 7
 
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((scaled_grid_x, scaled_grid_y))
 pygame.display.set_caption("Grid Simulation")
-
 
 # Define colors
 WHITE = (255, 255, 255)
@@ -75,35 +66,6 @@ LIGHT_GRAY = (249, 249, 249)
 def print_environment_stats(env):
     print("\033[1;33mNumber of Targets:", len(env.targets), "\033[0m")
     print("\033[1;33mNumber of Agents:", len(env.agents), "\033[0m")
-
-# Inherit fuel from dead agents to alive agents depending on the inheritance type
-def inherit_fuel(agent, fuel_to_inherit, inheritance_type, agents):
-    if inheritance_type == "distribute":
-        num_alive_agents = len(agents)
-        if num_alive_agents > 0:
-            fuel_to_add = fuel_to_inherit // num_alive_agents
-            for alive_agent in agents:
-                alive_agent.fuel += fuel_to_add
-            print("\033[1;33mAgent", agent.agent_id, "expired with", fuel_to_inherit, "fuel, which was distributed across all agents.\033[0m")
-
-    elif inheritance_type == "agent_with_least_fuel":
-        if len(agents) > 0:
-            agent_with_least_fuel = min(agents, key=lambda a: a.fuel)
-            agent_with_least_fuel.fuel += fuel_to_inherit
-            print("\033[1;33mAgent", agent.agent_id, "expired with", fuel_to_inherit, "fuel, which was inherited by agent with the least fuel:", agent_with_least_fuel.agent_id, "\033[0m")
-
-    elif inheritance_type == "agent_with_most_fuel":
-        if len(agents) > 0:
-            agent_with_most_fuel = max(agents, key=lambda a: a.fuel)
-            agent_with_most_fuel.fuel += fuel_to_inherit
-            print("\033[1;33mAgent", agent.agent_id, "expired with", fuel_to_inherit, "fuel, which was inherited by agent with the most fuel:", agent_with_most_fuel.agent_id, "\033[0m")
-
-    elif inheritance_type == "random":
-        if len(agents) > 0:
-            random_agent = random.choice(agents)
-            random_agent.fuel += fuel_to_inherit
-            print("\033[1;34mAgent", agent.agent_id, "expired with", fuel_to_inherit, "fuel, which was inherited by a random agent:", random_agent.agent_id, "\033[0m")
-
 
 # Run the simulation
 running = True
@@ -123,30 +85,15 @@ while running:
         # Check for trap collision
         if agent.check_trap_collision(env.targets):
             env.remove_target(agent.x, agent.y)
-            fuel_to_inherit = agent.fuel
             if agent in agents:
                 agents.remove(agent)
                 print("\033[1;31mAgent", agent.agent_id, "expired due to a trap at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", time, "and fuel of", agent.fuel, "\033[0m")
-                inherit_fuel(agent, fuel_to_inherit, inheritance_type, agents)
 
         
         if agent.fuel <= 0:
             agent.death_time = time
             agents.remove(agent)
             print("\033[1;31mAgent", agent.agent_id, "expired due to lack of fuel at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", agent.death_time, "\033[0m")
-
-
-    if random.random() <= death_rate:
-        agent.death_time = time
-        fuel_to_inherit = agent.fuel
-        agents.remove(agent)    
-        print("\033[1;31mAgent", agent.agent_id, "expired at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", agent.death_time, "and fuel of", agent.fuel, "\033[0m")
-        inherit_fuel(agent, fuel_to_inherit, inheritance_type, agents)
-
-    if random.random() <= birth_rate:
-        env.generate_single_agent()
-        new_agent = env.agents[-1]
-        print("\033[1;32mAgent", agent.agent_id, "was spawned at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and fuel of", agent.fuel , "\033[0m")
 
     for agent in agents:
         pygame.draw.circle(screen, LIGHT_GRAY, (agent.x * 7 + 3, agent.y * 7 + 3), scaled_view_range)

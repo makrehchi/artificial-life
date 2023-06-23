@@ -6,7 +6,7 @@ from target import Target
 
 class Environment:
     def __init__(self, grid_x, grid_y, num_resources, resource_size, num_traps, num_agents, agent_fuel_low_range,
-                 agent_fuel_high_range, view_range, death_rate, birth_rate, generation_period, inheritance_type, barriers, agent_specific_resource, fuel_requirement_resource, fuel_threshold_resource, fuel_required, fuel_threshold):
+                 agent_fuel_high_range, view_range, generation_period, barriers):
         self.grid_x = grid_x
         self.grid_y = grid_y
         self.num_resources = num_resources
@@ -16,20 +16,12 @@ class Environment:
         self.agent_fuel_low_range = agent_fuel_low_range
         self.agent_fuel_high_range = agent_fuel_high_range
         self.view_range = view_range
-        self.death_rate = death_rate
-        self.birth_rate = birth_rate
         self.generation_period = generation_period
-        self.inheritance_type = inheritance_type
         self.time = 0
         self.agents = []
         self.targets = []
         self.agent_id_counter = 0  # Counter to track the unique IDs of agents
         self.barriers = barriers
-        self.agent_specific_resource = agent_specific_resource
-        self.fuel_requirement_resource = fuel_requirement_resource
-        self.fuel_threshold_resource = fuel_threshold_resource
-        self.fuel_required = fuel_required
-        self.fuel_threshold = fuel_threshold
 
     def generate_agents(self):
         # Generate new instances of the Agent class with unique IDs and random spawn coordinates
@@ -71,22 +63,6 @@ class Environment:
         for _ in range(self.num_traps):
             x, y = self.get_valid_target_coordinates()
             target = Target(x, y, is_resource=False)
-            self.targets.append(target)
-
-        for agent in self.agents:
-            for _ in range(self.agent_specific_resource):
-                x, y = self.get_valid_target_coordinates()
-                target = Target(x, y, is_resource=True, size=self.resource_size, agent_requirement=agent.agent_id)
-                self.targets.append(target)
-
-        for _ in range(self.fuel_requirement_resource):
-            x, y = self.get_valid_target_coordinates()
-            target = Target(x, y, is_resource=True, size=self.resource_size, fuel_required=self.fuel_required)
-            self.targets.append(target)
-
-        for _ in range(self.fuel_threshold_resource):
-            x, y = self.get_valid_target_coordinates()
-            target = Target(x, y, is_resource=True, size=self.resource_size, fuel_threshold=self.fuel_threshold)
             self.targets.append(target)
 
     def get_valid_target_coordinates(self):
