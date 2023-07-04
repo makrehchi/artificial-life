@@ -6,7 +6,7 @@ from target import Target
 
 class Environment:
     def __init__(self, grid_x, grid_y, num_resources, resource_size, num_traps, num_agents, agent_fuel_low_range,
-                 agent_fuel_high_range, view_range, generation_period, barriers):
+                 agent_fuel_high_range, view_range, generation_period, barriers, age_range_low, age_range_high):
         self.grid_x = grid_x
         self.grid_y = grid_y
         self.num_resources = num_resources
@@ -22,6 +22,9 @@ class Environment:
         self.targets = []
         self.agent_id_counter = 0  # Counter to track the unique IDs of agents
         self.barriers = barriers
+        self.age_range_low = age_range_low
+        self.age_range_high = age_range_high
+
 
     def generate_agents(self):
         # Generate new instances of the Agent class with unique IDs and random spawn coordinates
@@ -30,17 +33,24 @@ class Environment:
             x = random.randint(0, self.grid_x - 1)
             y = random.randint(0, self.grid_y - 1)
             fuel = random.randint(self.agent_fuel_low_range, self.agent_fuel_high_range)
-            agent = Agent(agent_id, x, y, self.time, fuel, self)
+            age = 0
+            max_age = random.randint(self.age_range_low, self.age_range_high)  # Assign a random maximum age above the current age
+            agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, self)
             self.agents.append(agent)
             agent.birth_time = self.time
 
-    def generate_single_agent(self):
+    def generate_single_agent(self, fuel):
         agent_id = self.get_unique_agent_id()
         x = random.randint(0, self.grid_x - 1)
         y = random.randint(0, self.grid_y - 1)
-        fuel = random.randint(self.agent_fuel_low_range, self.agent_fuel_high_range)
-        agent = Agent(agent_id, x, y, self.time, fuel, self)
+        fuel = fuel
+        age = 0
+        max_age = random.randint(self.age_range_low, self.age_range_low)
+        agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, self)
         self.agents.append(agent)
+        agent.birth_time = self.time
+        print("new agent born at time: ", self.time, ", with age: ", age, " and fuel: ", fuel, " and max age: ", max_age)
+
 
     def get_unique_agent_id(self):
         # Generate a unique agent ID using a combination of three capital letters

@@ -2,18 +2,21 @@ import random
 from math import sqrt
 
 class Agent:
-    def __init__(self, agent_id, x, y, birth_time, fuel, environment):
+    def __init__(self, agent_id, x, y, birth_time, fuel, age, max_age, environment):
         self.agent_id = agent_id
         self.x = x
         self.y = y
         self.birth_time = birth_time
         self.death_time = 0
         self.fuel = fuel
+        self.age = age
+        self.max_age = max_age
         self.environment = environment
         self.target_in_sight = []
         self.is_dead = False
 
     def move_randomly(self):
+        self.fuel -= 1
         self.update_targets_in_sight()  # Update targets in sight before moving
 
         if self.target_in_sight:
@@ -37,6 +40,7 @@ class Agent:
                 new_x = self.x + 1
                 if self.can_move(new_x, self.y):
                     self.x = new_x
+
 
     def can_move(self, x, y):
         if (

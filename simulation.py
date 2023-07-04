@@ -6,7 +6,7 @@ from environment import Environment
 grid = (100, 100)
 num_resources = 50
 resource_size = 100
-num_traps = 10
+num_traps = 20
 barrier_type = "static"
 num_barriers = 100
 barriers = [
@@ -19,7 +19,9 @@ num_agents = 30
 agent_fuel_low_range = 300
 agent_fuel_high_range = 800
 view_range = 15
-generation_period = 1000
+generation_period = 999999
+age_range_low = 200
+age_range_high = 1000
 
 
 
@@ -30,7 +32,7 @@ if barrier_type == "dynamic":
 
 # Create an instance of the Environment class
 env = Environment(grid_x, grid_y, num_resources, resource_size, num_traps, num_agents, agent_fuel_low_range,
-                  agent_fuel_high_range, view_range, generation_period, barriers)
+                  agent_fuel_high_range, view_range, generation_period, barriers, age_range_low, age_range_high)
 
 # Generate agents and targets in the environment
 env.generate_agents()
@@ -78,22 +80,31 @@ while running:
 
     # Move agents and check for trap collision
     for agent in agents:
+        if agent.check_trap_collision(env.targets):
+            continue
         agent.move_randomly()
-        agent.fuel -= 1
+        agent.age += 1
         # Collect fuel if there is a resource/target on the current block
         agent.collect_fuel()
         # Check for trap collision
-        if agent.check_trap_collision(env.targets):
-            env.remove_target(agent.x, agent.y)
-            if agent in agents:
-                agents.remove(agent)
-                print("\033[1;31mAgent", agent.agent_id, "expired due to a trap at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", time, "and fuel of", agent.fuel, "\033[0m")
-
         
         if agent.fuel <= 0:
             agent.death_time = time
-            agents.remove(agent)
+            if agent in agents:
+                agents.remove(agent)
             print("\033[1;31mAgent", agent.agent_id, "expired due to lack of fuel at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", agent.death_time, "\033[0m")
+            if agent.fuel <= 5:
+                agent.fuel =+ 100
+            env.generate_single_agent(agent.fuel)
+
+        if agent.max_age <= agent.age:
+            agent.death_time = time
+            if agent in agents:
+                agents.remove(agent)
+            print("\033[1;31mAgent", agent.agent_id, "expired due to old age at coordinates:", "(" + str(agent.x) + "," + str(agent.y) + "). With a birth time of", agent.birth_time, "and an expiration time of", agent.death_time, "\033[0m")
+            if agent.fuel <= 5:
+                agent.fuel =+ 100
+            env.generate_single_agent(agent.fuel)
 
     for agent in agents:
         pygame.draw.circle(screen, LIGHT_GRAY, (agent.x * 7 + 3, agent.y * 7 + 3), scaled_view_range)
