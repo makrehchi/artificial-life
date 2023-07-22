@@ -1,0 +1,30 @@
+grid = (100, 100)
+num_resources = 100
+resource_size = 100
+num_traps = 20
+barrier_type = "dynamic"
+num_barriers = 20
+barriers = [
+    *[(x, 40) for x in range(20, 40)],
+    *[(x, 50) for x in range(60, 80)],
+    *[(x, 60) for x in range(100, 120)],
+    *[(x, 70) for x in range(140, 160)],
+]
+agent_fuel_low_range = 20
+agent_fuel_high_range = 30
+intelligence_range_low = 5
+intelligence_range_high = 15
+generation_period = 999999
+age_range_low = 200
+age_range_high = 1000
+target_size_low = 5
+target_size_high = 20
+
+num_agents_A = 10
+num_agents_B = 5
+num_agents_C = 5
+num_agents_D = 12
+
+# Set this variable to True if you want to assign agents randomly, False otherwise.
+assign_agents_randomly = True
+num_agents_random = 20
