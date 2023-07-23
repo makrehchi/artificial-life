@@ -1,6 +1,7 @@
 import pygame, random
 
 from environment import Environment
+from target import Target
 
 # Read variables from a text file
 def read_variables_from_file():
@@ -40,7 +41,6 @@ variables = read_variables_from_file()
 num_frames = variables.get("num_frames")
 grid = variables.get("grid")
 num_resources = variables.get("num_resources")
-resource_size = variables.get("resource_size")
 num_traps = variables.get("num_traps")
 barrier_type = variables.get("barrier_type")
 num_barriers = variables.get("num_barriers")
@@ -73,7 +73,7 @@ grid_x, grid_y = grid
 if barrier_type == "dynamic":
     barriers = [(random.randint(0, grid_x - 1), random.randint(0, grid_y - 1)) for _ in range(num_barriers)]
 
-env = Environment(grid_x, grid_y, num_resources, resource_size, num_traps, num_agents, agent_fuel_low_range,
+env = Environment(grid_x, grid_y, num_resources, num_traps, num_agents, agent_fuel_low_range,
                   agent_fuel_high_range, generation_period, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high)
 
 def generate_agents_by_specified_count(num_agents_A, num_agents_B, num_agents_C, num_agents_D):
@@ -107,6 +107,14 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode((scaled_grid_x, scaled_grid_y))
 pygame.display.set_caption("Grid Simulation")
 
+# Quadrant numbers for respective keys: 1 - Top Left, 2 - Top Right, 3 - Bottom Left, 4 - Bottom Right
+key_to_quadrant = {
+    pygame.K_1: 1,
+    pygame.K_2: 2,
+    pygame.K_3: 3,
+    pygame.K_4: 4,
+}
+
 # Define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -121,6 +129,15 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            # Check if the pressed key is 1, 2, 3, or 4, and create a resource in the respective quadrant
+            quadrant = key_to_quadrant.get(event.key)
+            if quadrant is not None:
+                x, y = env.get_random_point_in_quarter(quadrant)
+                size = random.randint(env.target_size_low, env.target_size_high)
+                resource_class = random.choice(['A', 'B', 'C', 'D'])
+                target = Target(x, y, is_resource=True, size=size, resource_class=resource_class)
+                env.targets.append(target)
     
     num_frames -= 1
     if num_frames <= 0:

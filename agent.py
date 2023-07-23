@@ -35,9 +35,12 @@ class Agent:
         elif target_quarter == 3:
             x_range = range(self.environment.grid_x // 2)
             y_range = range(self.environment.grid_y // 2, self.environment.grid_y)
-        else:
+        elif target_quarter == 4:
             x_range = range(self.environment.grid_x // 2, self.environment.grid_x)
             y_range = range(self.environment.grid_y // 2, self.environment.grid_y)
+        else:
+            x_range = range(self.environment.grid_x)
+            y_range = range(self.environment.grid_y)
 
         target_x = random.choice(x_range)
         target_y = random.choice(y_range)
@@ -199,12 +202,10 @@ class Agent:
             if target.x == self.x and target.y == self.y and target.is_resource:
                 if self.resource_class == 'A' or target.resource_class == self.resource_class:
                     self.fuel += round(target.size * self.energy)
-                    print(target.size, round(self.energy*target.size))
                     self.environment.targets.remove(target)
                     break
                 elif self.resource_class == 'B' and target.resource_class in ('B', 'C', 'D'):
                     self.fuel += round(target.size * self.energy)
-                    print(target.size, round(self.energy*target.size))
                     # elf.resources_collected += 1
                     # if self.resources_collected >= 10:
                     #     self.resources_collected = 0
@@ -213,7 +214,6 @@ class Agent:
                     break
                 elif self.resource_class == 'C' and target.resource_class in ('C', 'D'):
                     self.fuel += round(target.size * self.energy)
-                    print(target.size, round(self.energy*target.size))
                     # self.resources_collected += 1
                     # if self.resources_collected >= 10:
                     #     self.resources_collected = 0
@@ -222,7 +222,6 @@ class Agent:
                     break
                 elif self.resource_class == 'D' and target.resource_class == 'D':
                     self.fuel += round(target.size * self.energy)
-                    print(target.size, round(self.energy*target.size))
                     # self.resources_collected += 1
                     # if self.resources_collected >= 10:
                     #     self.resources_collected = 0

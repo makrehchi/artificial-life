@@ -1,7 +1,6 @@
 grid = (100, 100)
-num_resources = 100
-resource_size = 100
-num_traps = 20
+num_resources = 0
+num_traps = 0
 barrier_type = "dynamic"
 num_barriers = 20
 barriers = [

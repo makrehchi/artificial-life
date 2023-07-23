@@ -5,12 +5,11 @@ from agent import Agent
 from target import Target
 
 class Environment:
-    def __init__(self, grid_x, grid_y, num_resources, resource_size, num_traps, num_agents, agent_fuel_low_range,
+    def __init__(self, grid_x, grid_y, num_resources, num_traps, num_agents, agent_fuel_low_range,
                  agent_fuel_high_range, generation_period, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high):
         self.grid_x = grid_x
         self.grid_y = grid_y
         self.num_resources = num_resources
-        self.resource_size = resource_size
         self.num_traps = num_traps
         self.num_agents = num_agents
         self.agent_fuel_low_range = agent_fuel_low_range
@@ -46,7 +45,10 @@ class Environment:
             else:
                 quarter_counts[3] += 1
 
-        max_quarter = quarter_counts.index(max(quarter_counts)) + 1
+        if all(count == 0 for count in quarter_counts):
+            max_quarter = 0
+        else:
+            max_quarter = quarter_counts.index(max(quarter_counts)) + 1
         return max_quarter
 
     def get_random_point_in_quarter(self, quarter):
@@ -128,6 +130,13 @@ class Environment:
             resource_class = random.choice(['A', 'B', 'C', 'D'])
             target = Target(x, y, is_resource=True, size=size, resource_class=resource_class)
             self.targets.append(target)
+    
+    def generate_single_target(self):
+        x, y = self.get_valid_target_coordinates()
+        size = random.randint(self.target_size_low, self.target_size_high)
+        resource_class = random.choice(['A', 'B', 'C', 'D'])
+        target = Target(x, y, is_resource=True, size=size, resource_class=resource_class)
+        self.targets.append(target)
 
     def generate_traps(self):
         for _ in range(self.num_traps):
