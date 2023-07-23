@@ -15,10 +15,10 @@ agent_fuel_high_range = 30
 intelligence_range_low = 5
 intelligence_range_high = 15
 generation_period = 999999
-age_range_low = 200
-age_range_high = 1000
-target_size_low = 5
-target_size_high = 20
+age_range_low = 100
+age_range_high = 300
+target_size_low = 50
+target_size_high = 100
 
 num_agents_A = 10
 num_agents_B = 5
@@ -28,3 +28,5 @@ num_agents_D = 12
 # Set this variable to True if you want to assign agents randomly, False otherwise.
 assign_agents_randomly = True
 num_agents_random = 20
+
+num_frames = 3000

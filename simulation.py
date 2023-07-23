@@ -37,6 +37,7 @@ pygame.init()
 
 variables = read_variables_from_file()
 
+num_frames = variables.get("num_frames")
 grid = variables.get("grid")
 num_resources = variables.get("num_resources")
 resource_size = variables.get("resource_size")
@@ -102,7 +103,6 @@ targets = env.targets
 scaled_grid_x = grid_x * 7
 scaled_grid_y = grid_y * 7
 
-
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((scaled_grid_x, scaled_grid_y))
 pygame.display.set_caption("Grid Simulation")
@@ -121,6 +121,10 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+    
+    num_frames -= 1
+    if num_frames <= 0:
+        running = False
 
     screen.fill(WHITE)
 
@@ -138,17 +142,8 @@ while running:
         agent.age += 1
         # Collect fuel if there is a resource/target on the current block
         agent.collect_fuel()
-    
 
-        if agent.fuel <= 0:
-            agent.death_time = time
-            if agent in agents:
-                agents.remove(agent)
-            if agent.fuel <= 5:
-                agent.fuel += 100
-            env.generate_single_agent(agent.fuel)
-    
-        if agent.max_age <= agent.age:
+        if (agent.fuel <= 0) or (agent.age >= agent.max_age) or (agent.is_ill):
             agent.death_time = time
             if agent in agents:
                 agents.remove(agent)

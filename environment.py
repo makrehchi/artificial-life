@@ -77,7 +77,15 @@ class Environment:
         max_age = random.randint(self.age_range_low, self.age_range_high)
         morality = random.uniform(0, 1)
         intelligence = random.randint(self.intelligence_range_low, self.intelligence_range_high)
-        agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, intelligence, morality, resource_class, self)
+
+        energy = random.uniform(0, 1)
+        waste = random.uniform(0, 1 - energy)
+        fat = 1 - (energy + waste)
+        factors = [energy, waste, fat]
+        random.shuffle(factors)
+        energy, waste, fat = factors
+
+        agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, intelligence, morality, resource_class, energy, waste, fat, self)
         self.agents.append(agent)
         agent.birth_time = self.time
 
@@ -90,7 +98,15 @@ class Environment:
         intelligence = random.randint(self.intelligence_range_low, self.intelligence_range_high)
         morality = random.uniform(0, 1)
         resource_class = random.choice(['A', 'B', 'C', 'D'])
-        agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, intelligence, morality, resource_class, self)
+
+        energy = random.uniform(0, 1)
+        waste = random.uniform(0, 1 - energy)
+        fat = 1 - (energy + waste)
+        factors = [energy, waste, fat]
+        random.shuffle(factors)
+        energy, waste, fat = factors
+
+        agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, intelligence, morality, resource_class, energy, waste, fat, self)
         self.agents.append(agent)
         agent.birth_time = self.time
 

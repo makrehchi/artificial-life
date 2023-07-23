@@ -2,7 +2,7 @@ import random
 from math import sqrt
 
 class Agent:
-    def __init__(self, agent_id, x, y, birth_time, fuel, age, max_age, intelligence, morality, resource_class, environment):
+    def __init__(self, agent_id, x, y, birth_time, fuel, age, max_age, intelligence, morality, resource_class, energy, waste, fat, environment):
         self.agent_id = agent_id
         self.x = x
         self.y = y
@@ -12,6 +12,10 @@ class Agent:
         self.age = age
         self.max_age = max_age
         self.intelligence = intelligence
+        self.energy = energy
+        self.waste = waste
+        self.fat = fat
+        self.is_ill = False
         self.environment = environment
         self.target_in_sight = []
         self.is_dead = False
@@ -58,6 +62,7 @@ class Agent:
                 self.y = new_y
 
     def move_randomly(self):
+        self.become_ill()
         if self.is_trapped:
             return
         self.update_targets_in_sight()
@@ -193,32 +198,41 @@ class Agent:
         for target in self.environment.targets:
             if target.x == self.x and target.y == self.y and target.is_resource:
                 if self.resource_class == 'A' or target.resource_class == self.resource_class:
-                    self.fuel += target.size
+                    self.fuel += round(target.size * self.energy)
+                    print(target.size, round(self.energy*target.size))
                     self.environment.targets.remove(target)
                     break
                 elif self.resource_class == 'B' and target.resource_class in ('B', 'C', 'D'):
-                    self.fuel += target.size
-                    self.resources_collected += 1
-                    if self.resources_collected >= 10:
-                        self.resources_collected = 0
-                        self.resource_class = 'A'
+                    self.fuel += round(target.size * self.energy)
+                    print(target.size, round(self.energy*target.size))
+                    # elf.resources_collected += 1
+                    # if self.resources_collected >= 10:
+                    #     self.resources_collected = 0
+                    #     self.resource_class = 'A'
                     self.environment.targets.remove(target)
                     break
                 elif self.resource_class == 'C' and target.resource_class in ('C', 'D'):
-                    self.fuel += target.size
-                    self.resources_collected += 1
-                    if self.resources_collected >= 10:
-                        self.resources_collected = 0
-                        self.resource_class = 'B'
+                    self.fuel += round(target.size * self.energy)
+                    print(target.size, round(self.energy*target.size))
+                    # self.resources_collected += 1
+                    # if self.resources_collected >= 10:
+                    #     self.resources_collected = 0
+                    #     self.resource_class = 'B'
                     self.environment.targets.remove(target)
                     break
                 elif self.resource_class == 'D' and target.resource_class == 'D':
-                    self.fuel += target.size
-                    self.resources_collected += 1
-                    if self.resources_collected >= 10:
-                        self.resources_collected = 0
-                        self.resource_class = 'C'
+                    self.fuel += round(target.size * self.energy)
+                    print(target.size, round(self.energy*target.size))
+                    # self.resources_collected += 1
+                    # if self.resources_collected >= 10:
+                    #     self.resources_collected = 0
+                    #     self.resource_class = 'C'
                     self.environment.targets.remove(target)
                     break
                 else:
                     break
+
+    def become_ill(self):
+        # Determine the probability of becoming ill based on the fat level
+        illness_probability = self.fat * 0.001  # Adjust the factor (0.1) as needed for desired impact
+        self.is_ill = random.random() < illness_probability
