@@ -82,13 +82,15 @@ class Agent:
             self.environment.remove_target(trap_x, trap_y)  # Remove the trap from the environment.
             return  # The agent cannot move if it's trapped.
 
-        # Continue with normal movement
-        if self.target_in_sight:
+        # Get the agent's speed based on their fuel
+        speed = self.calculate_speed()
+
+        for _ in range(speed):
             self.fuel -= 1
-            self.move_towards_target()
-        else:
-            self.fuel -= 1
-            self.move_randomly_without_target()
+            if self.target_in_sight:
+                self.move_towards_target()
+            else:
+                self.move_randomly_without_target()
 
     def move_randomly_without_target(self):
         random_number = random.random()
@@ -235,3 +237,10 @@ class Agent:
         # Determine the probability of becoming ill based on the fat level
         illness_probability = self.fat * 0.001  # Adjust the factor (0.1) as needed for desired impact
         self.is_ill = random.random() < illness_probability
+
+    def calculate_speed(self):
+        max_fuel_agent = max(self.environment.agents, key=lambda agent: agent.fuel)
+        max_fuel = max_fuel_agent.fuel
+
+        speed = (max_fuel - self.fuel) / max_fuel
+        return 1 if speed > 0.1 else 0
