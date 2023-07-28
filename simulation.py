@@ -10,35 +10,66 @@ def read_variables_from_file():
         exec(variables_file.read(), variables)
         return variables
 
-def calculate_gini_coefficient(agents):
-    total_fuel = sum(agent.fuel for agent in agents)
+def calculate_income_gini_coefficient(agents):
+    if not agents or all(agent.income_collected == 0 for agent in agents):
+        return "No income"  # Return 0 if there are no agents or if all agents have zero income_collected
+    
+    total_fuel_collected = sum(agent.income_collected for agent in agents)
     n = len(agents)
-    agents_sorted = sorted(agents, key=lambda agent: agent.fuel)
-    lorenz_curve = [sum(agent.fuel for agent in agents_sorted[:i + 1]) / total_fuel for i in range(n)]
+    agents_sorted_by_income = sorted(agents, key=lambda agent: agent.income_collected)
+    lorenz_curve = [sum(agent.income_collected for agent in agents_sorted_by_income[:i + 1]) / total_fuel_collected for i in range(n)]
     area_under_lorenz_curve = sum((lorenz_curve[i - 1] + lorenz_curve[i]) * (1 / n) for i in range(1, n))
     gini_coefficient = 1 - 2 * area_under_lorenz_curve
     return gini_coefficient
 
-def redistribute_wealth(agents, total_redistributed_fuel):
-    gini_coefficient = calculate_gini_coefficient(agents)
+def calculate_wealth_gini_coefficient(agents):
     total_fuel = sum(agent.fuel for agent in agents)
+    n = len(agents)
+    agents_sorted_by_wealth = sorted(agents, key=lambda agent: agent.fuel)
+    lorenz_curve = [sum(agent.fuel for agent in agents_sorted_by_wealth[:i + 1]) / total_fuel for i in range(n)]
+    area_under_lorenz_curve = sum((lorenz_curve[i - 1] + lorenz_curve[i]) * (1 / n) for i in range(1, n))
+    gini_coefficient = 1 - 2 * area_under_lorenz_curve
+    return gini_coefficient
+
+community_fund = 0
+
+def calculate_total_fuel(agents):
+    return sum(agent.fuel for agent in agents)
+
+def redistribute(agents, tax_cutoff_percentage, uniform_tax_distribution):
+    total_fuel_before_tax = calculate_total_fuel(agents)
+
+    # Calculate the total amount of tax to be collected
+    total_tax_collected = total_fuel_before_tax * (tax_cutoff_percentage / 100)
+
+    # Calculate the tax to be collected from each agent
+    individual_tax_amount = total_tax_collected / len(agents)
+
+    # Collect the tax from each agent and add it to the community fund
     for agent in agents:
-        if agent.fuel < total_fuel * 0.2:
-            redistribution = agent.fuel * total_redistributed_fuel / total_fuel
-            agent.fuel += redistribution
-            total_redistributed_fuel -= redistribution
-    for agent in sorted(agents, key=lambda agent: agent.fuel, reverse=True):
-        if agent.fuel >= total_fuel * 0.8:
-            redistribution = agent.fuel * total_redistributed_fuel / total_fuel
-            agent.fuel -= redistribution
-            total_redistributed_fuel -= redistribution
-    return total_redistributed_fuel
+        tax_collected = min(individual_tax_amount, agent.fuel)
+        agent.fuel -= tax_collected
+        community_fund += tax_collected
+
+    # Calculate the redistribution amount based on uniform or progressive distribution
+    if uniform_tax_distribution:
+        redistribution_amount = community_fund // len(agents)
+    else:
+        agents_sorted_by_income = sorted(agents, key=lambda agent: agent.income_collected)
+        for i, agent in enumerate(agents_sorted_by_income):
+            proportion = i / (len(agents_sorted_by_income) - 1)  # Progressively reduce the redistribution amount
+            redistribution_amount = int(community_fund * proportion)
+            agent.fuel += redistribution_amount
+
 
 pygame.init()
 
 variables = read_variables_from_file()
 
 num_frames = variables.get("num_frames")
+tax_frames = variables.get("tax_frames")
+tax_cutoff_percentage = variables.get("tax_cutoff_percentage")
+uniform_tax_distribution = variables.get("uniform_tax_distribution")
 grid = variables.get("grid")
 num_resources = variables.get("num_resources")
 num_traps = variables.get("num_traps")
@@ -95,6 +126,9 @@ else:
 
 env.generate_targets()
 env.generate_traps()
+
+# Initialize total_redistributed_fuel outside the loop
+total_redistributed_fuel = 0
 
 # Access the agents and targets in the environment
 agents = env.agents
@@ -204,13 +238,14 @@ while running:
     time += 1
     env.time += 1
 
-    # Calculate the Gini coefficient and redistribute wealth every 200 moves
-    if time % 200 == 0:
-        gini_coefficient = calculate_gini_coefficient(agents)
-        print("Gini Coefficient:", gini_coefficient)
+    if time % tax_frames == 0:
+        income_gini_coefficient = calculate_income_gini_coefficient(agents)
+        wealth_gini_coefficient = calculate_wealth_gini_coefficient(agents)
+        print("Income Gini Coefficient:", income_gini_coefficient)
+        print("Wealth Gini Coefficient:", wealth_gini_coefficient)
 
-        total_redistributed_fuel = 1000  # You can adjust the amount of redistributed fuel as needed
-        remaining_redistributed_fuel = redistribute_wealth(agents, total_redistributed_fuel)
+        # Update the assignment with the function call
+        redistribute(agents, tax_cutoff_percentage, uniform_tax_distribution)
 
 
     # Print the counts of each agent type

@@ -26,7 +26,6 @@ class Environment:
         self.intelligence_range_high = intelligence_range_high
         self.target_size_low = target_size_low
         self.target_size_high = target_size_high
-        self.total_fuel = sum(agent.fuel for agent in self.agents)
 
     def get_quarter_with_max_targets(self):
         quarter_counts = [0, 0, 0, 0]
@@ -79,6 +78,7 @@ class Environment:
         max_age = random.randint(self.age_range_low, self.age_range_high)
         morality = random.uniform(0, 1)
         intelligence = random.randint(self.intelligence_range_low, self.intelligence_range_high)
+        will = random.uniform(0, 1)
 
         energy = random.uniform(0, 1)
         waste = random.uniform(0, 1 - energy)
@@ -87,7 +87,7 @@ class Environment:
         random.shuffle(factors)
         energy, waste, fat = factors
 
-        agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, intelligence, morality, resource_class, energy, waste, fat, self)
+        agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, intelligence, morality, will, resource_class, energy, waste, fat, self)
         self.agents.append(agent)
         agent.birth_time = self.time
 
@@ -98,6 +98,7 @@ class Environment:
         age = 0
         max_age = random.randint(self.age_range_low, self.age_range_high)
         intelligence = random.randint(self.intelligence_range_low, self.intelligence_range_high)
+        will = random.uniform(0, 1)
         morality = random.uniform(0, 1)
         resource_class = random.choice(['A', 'B', 'C', 'D'])
 
@@ -108,7 +109,7 @@ class Environment:
         random.shuffle(factors)
         energy, waste, fat = factors
 
-        agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, intelligence, morality, resource_class, energy, waste, fat, self)
+        agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, intelligence, morality, will, resource_class, energy, waste, fat, self)
         self.agents.append(agent)
         agent.birth_time = self.time
 

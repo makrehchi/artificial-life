@@ -2,7 +2,7 @@ import random
 from math import sqrt
 
 class Agent:
-    def __init__(self, agent_id, x, y, birth_time, fuel, age, max_age, intelligence, morality, resource_class, energy, waste, fat, environment):
+    def __init__(self, agent_id, x, y, birth_time, fuel, age, max_age, intelligence, morality, will, resource_class, energy, waste, fat, environment):
         self.agent_id = agent_id
         self.x = x
         self.y = y
@@ -20,10 +20,12 @@ class Agent:
         self.target_in_sight = []
         self.is_dead = False
         self.morality = morality
+        self.will = will
         self.is_trapped = False
         self.trap_cost = 0  # Initialize trap_cost to 0
         self.resource_class = resource_class
         self.resources_collected = 0
+        self.income_collected = 0
 
     def move_towards_quarter(self, target_quarter):
         if target_quarter == 1:
@@ -82,15 +84,20 @@ class Agent:
             self.environment.remove_target(trap_x, trap_y)  # Remove the trap from the environment.
             return  # The agent cannot move if it's trapped.
 
+
+        if random.random() <= self.morality:
+            self.help_trapped_agent()
+
         # Get the agent's speed based on their fuel
         speed = self.calculate_speed()
 
         for _ in range(speed):
-            self.fuel -= 1
-            if self.target_in_sight:
-                self.move_towards_target()
-            else:
-                self.move_randomly_without_target()
+            if random.random() <= self.will:
+                self.fuel -= 1
+                if self.target_in_sight:
+                    self.move_towards_target()
+                else:
+                    self.move_randomly_without_target()
 
     def move_randomly_without_target(self):
         random_number = random.random()
@@ -186,6 +193,7 @@ class Agent:
             if self.can_move(self.x, new_y):
                 self.y = new_y
 
+    def help_trapped_agent(self):
         # Check if the agent sees another trapped agent in their view range and helps them based on their morality
         trapped_agents_in_range = [agent for agent in self.environment.agents if agent.is_trapped and agent != self and self.is_in_range(agent.x, agent.y)]
         if trapped_agents_in_range:
@@ -204,10 +212,12 @@ class Agent:
             if target.x == self.x and target.y == self.y and target.is_resource:
                 if self.resource_class == 'A' or target.resource_class == self.resource_class:
                     self.fuel += round(target.size * self.energy)
+                    self.income_collected += round(target.size * self.energy)
                     self.environment.targets.remove(target)
                     break
                 elif self.resource_class == 'B' and target.resource_class in ('B', 'C', 'D'):
                     self.fuel += round(target.size * self.energy)
+                    self.income_collected += round(target.size * self.energy)
                     # elf.resources_collected += 1
                     # if self.resources_collected >= 10:
                     #     self.resources_collected = 0
@@ -216,6 +226,7 @@ class Agent:
                     break
                 elif self.resource_class == 'C' and target.resource_class in ('C', 'D'):
                     self.fuel += round(target.size * self.energy)
+                    self.income_collected += round(target.size * self.energy)
                     # self.resources_collected += 1
                     # if self.resources_collected >= 10:
                     #     self.resources_collected = 0
@@ -224,6 +235,7 @@ class Agent:
                     break
                 elif self.resource_class == 'D' and target.resource_class == 'D':
                     self.fuel += round(target.size * self.energy)
+                    self.income_collected += round(target.size * self.energy)
                     # self.resources_collected += 1
                     # if self.resources_collected >= 10:
                     #     self.resources_collected = 0
@@ -243,4 +255,8 @@ class Agent:
         max_fuel = max_fuel_agent.fuel
 
         speed = (max_fuel - self.fuel) / max_fuel
-        return 1 if speed > 0.1 else 0
+        # if (speed > 0.1) and (random.random() > 0.1):
+        #     return 1
+        # else:
+        #     return 0
+        return 1
