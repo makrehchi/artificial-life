@@ -37,6 +37,7 @@ def calculate_total_fuel(agents):
     return sum(agent.fuel for agent in agents)
 
 def redistribute(agents, tax_cutoff_percentage, uniform_tax_distribution):
+    global community_fund
     total_fuel_before_tax = calculate_total_fuel(agents)
 
     # Calculate the total amount of tax to be collected

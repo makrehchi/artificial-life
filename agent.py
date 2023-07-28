@@ -26,6 +26,7 @@ class Agent:
         self.resource_class = resource_class
         self.resources_collected = 0
         self.income_collected = 0
+        self.movement_counter = 0
 
     def move_towards_quarter(self, target_quarter):
         if target_quarter == 1:
@@ -91,7 +92,17 @@ class Agent:
         # Get the agent's speed based on their fuel
         speed = self.calculate_speed()
 
-        for _ in range(speed):
+        # Check if speed is zero to avoid division by zero
+        if speed == 0:
+            return
+
+        # Increment the movement counter
+        self.movement_counter += 1
+
+        # Check if the agent should move based on the current speed and movement counter
+        if self.movement_counter >= 1 / speed:
+            # Reset the movement counter
+            self.movement_counter = 0
             if random.random() <= self.will:
                 self.fuel -= 1
                 if self.target_in_sight:
@@ -255,8 +266,4 @@ class Agent:
         max_fuel = max_fuel_agent.fuel
 
         speed = (max_fuel - self.fuel) / max_fuel
-        # if (speed > 0.1) and (random.random() > 0.1):
-        #     return 1
-        # else:
-        #     return 0
-        return 1
+        return speed
