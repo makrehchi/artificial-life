@@ -1,3 +1,6 @@
+# agent becoming higher class
+# insurgence
+
 import pygame, random
 
 from environment import Environment
@@ -70,7 +73,9 @@ variables = read_variables_from_file()
 num_frames = variables.get("num_frames")
 tax_frames = variables.get("tax_frames")
 tax_cutoff_percentage = variables.get("tax_cutoff_percentage")
+inheritance_tax_rate = variables.get("inheritance_tax_rate")
 uniform_tax_distribution = variables.get("uniform_tax_distribution")
+productivity_rate = variables.get("productivity_rate")
 grid = variables.get("grid")
 num_resources = variables.get("num_resources")
 num_traps = variables.get("num_traps")
@@ -104,6 +109,8 @@ time = 0
 grid_x, grid_y = grid
 if barrier_type == "dynamic":
     barriers = [(random.randint(0, grid_x - 1), random.randint(0, grid_y - 1)) for _ in range(num_barriers)]
+
+productivity_rate = productivity_rate / 100
 
 env = Environment(grid_x, grid_y, num_resources, num_traps, num_agents, agent_fuel_low_range,
                   agent_fuel_high_range, generation_period, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high)
@@ -185,12 +192,12 @@ while running:
         if agent.check_trap_collision(env.targets):
         # If the agent collides with a trap, set is_trapped to True and remove the trap from the environment.
             agent.is_trapped = True
-            agent.move_randomly()  # This prevents the trapped agent from moving.
+            agent.move_randomly(productivity_rate)  # This prevents the trapped agent from moving.
             trap_x, trap_y = agent.x, agent.y
             env.remove_target(trap_x, trap_y)  # Remove the trap from the environment.
         else:
             # If the agent is not trapped, they can move normally.
-            agent.move_randomly()
+            agent.move_randomly(productivity_rate)
         agent.age += 1
         # Collect fuel if there is a resource/target on the current block
         agent.collect_fuel()
@@ -199,9 +206,19 @@ while running:
             agent.death_time = time
             if agent in agents:
                 agents.remove(agent)
-            if agent.fuel <= 5:
-                agent.fuel += 100
+            if agent.fuel <= 20:
+                agent.fuel += 60
+            else:
+                agent.fuel = agent.fuel - (agent.fuel*(inheritance_tax_rate/100))
+                #community_fund += agent.fuel*(tax_cutoff_percentage/100)
             env.generate_single_agent(agent.fuel)
+
+    # generate new targets based on agent productivity
+    if random.random() <= 0.1:
+        if env.agent_movements_counter > agent_fuel_low_range:
+            env_agent_movements_counter = round(env.agent_movements_counter)
+            env.generate_single_target(env.agent_movements_counter)
+            env.agent_movements_counter = 0
 
     # Draw barriers
     for barrier_cell in barriers:

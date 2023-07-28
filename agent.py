@@ -67,7 +67,7 @@ class Agent:
             if self.can_move(self.x, new_y):
                 self.y = new_y
 
-    def move_randomly(self):
+    def move_randomly(self, productivity_rate):
         self.become_ill()
         if self.is_trapped:
             return
@@ -105,6 +105,8 @@ class Agent:
             self.movement_counter = 0
             if random.random() <= self.will:
                 self.fuel -= 1
+                # Increment the agent movements counter
+                self.environment.agent_movements_counter += 1 * productivity_rate
                 if self.target_in_sight:
                     self.move_towards_target()
                 else:
@@ -267,3 +269,5 @@ class Agent:
 
         speed = (max_fuel - self.fuel) / max_fuel
         return speed
+    
+    

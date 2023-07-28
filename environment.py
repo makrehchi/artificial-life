@@ -26,6 +26,7 @@ class Environment:
         self.intelligence_range_high = intelligence_range_high
         self.target_size_low = target_size_low
         self.target_size_high = target_size_high
+        self.agent_movements_counter = 0
 
     def get_quarter_with_max_targets(self):
         quarter_counts = [0, 0, 0, 0]
@@ -135,6 +136,12 @@ class Environment:
     def generate_single_target(self):
         x, y = self.get_valid_target_coordinates()
         size = random.randint(self.target_size_low, self.target_size_high)
+        resource_class = random.choice(['A', 'B', 'C', 'D'])
+        target = Target(x, y, is_resource=True, size=size, resource_class=resource_class)
+        self.targets.append(target)
+
+    def generate_single_target(self, size):
+        x, y = self.get_valid_target_coordinates()
         resource_class = random.choice(['A', 'B', 'C', 'D'])
         target = Target(x, y, is_resource=True, size=size, resource_class=resource_class)
         self.targets.append(target)

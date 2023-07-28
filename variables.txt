@@ -1,5 +1,5 @@
 grid = (100, 100)
-num_resources = 100
+num_resources = 75
 num_traps = 10
 barrier_type = "dynamic"
 num_barriers = 20
@@ -26,12 +26,16 @@ num_agents_D = 12
 
 # Set this variable to True if you want to assign agents randomly, False otherwise.
 assign_agents_randomly = True
-num_agents_random = 30
+num_agents_random = 20
 
 num_frames = 3000
 
-tax_frames = 50
+tax_frames = 200
 
 # What percentage of the population consititutes as low income
 tax_cutoff_percentage = 50
 uniform_tax_distribution = True
+
+inheritance_tax_rate = 20
+
+productivity_rate = 75
