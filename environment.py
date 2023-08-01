@@ -9,6 +9,7 @@ class Environment:
                  agent_fuel_high_range, generation_period, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high):
         self.grid_x = grid_x
         self.grid_y = grid_y
+        self.grid_size = (grid_x, grid_y)
         self.num_resources = num_resources
         self.num_traps = num_traps
         self.num_agents = num_agents
@@ -27,6 +28,12 @@ class Environment:
         self.target_size_low = target_size_low
         self.target_size_high = target_size_high
         self.agent_movements_counter = 0
+        self.quadrant_data = {
+            1: {'num_agents': 0, 'num_resources': 0},
+            2: {'num_agents': 0, 'num_resources': 0},
+            3: {'num_agents': 0, 'num_resources': 0},
+            4: {'num_agents': 0, 'num_resources': 0},
+        }
 
     def get_quarter_with_max_targets(self):
         quarter_counts = [0, 0, 0, 0]
@@ -183,3 +190,49 @@ class Environment:
         for agent in self.agents:
             agent_counts[agent.resource_class] += 1
         return agent_counts
+
+    def get_quadrant_number(self, x, y, grid_x, grid_y):
+        grid_x, grid_y = self.grid_size
+        half_x, half_y = grid_x // 2, grid_y // 2
+
+        if x < half_x:
+            if y < half_y:
+                return 1
+            else:
+                return 3
+        else:
+            if y < half_y:
+                return 2
+            else:
+                return 4
+            
+
+    def count_resources_in_quadrant(self, quadrant_num):
+        # Determine the bounds of the quadrant based on its number
+        half_x = self.grid_x // 2
+        half_y = self.grid_y // 2
+
+        if quadrant_num == 1:
+            x_start, x_end = 0, half_x
+            y_start, y_end = 0, half_y
+        elif quadrant_num == 2:
+            x_start, x_end = half_x, self.grid_x
+            y_start, y_end = 0, half_y
+        elif quadrant_num == 3:
+            x_start, x_end = 0, half_x
+            y_start, y_end = half_y, self.grid_y
+        elif quadrant_num == 4:
+            x_start, x_end = half_x, self.grid_x
+            y_start, y_end = half_y, self.grid_y
+        else:
+            raise ValueError("Invalid quadrant number. Must be 1, 2, 3, or 4.")
+
+        # Initialize a counter for the resources in the quadrant
+        num_resources_in_quadrant = 0
+
+        # Loop through the targets and check if they fall within the bounds of the quadrant
+        for target in self.targets:
+            if x_start <= target.x < x_end and y_start <= target.y < y_end and target.is_resource:
+                num_resources_in_quadrant += 1
+
+        return num_resources_in_quadrant

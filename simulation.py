@@ -1,7 +1,8 @@
 # agent becoming higher class
 # insurgence
 
-import pygame, random
+
+import pygame, random, os, csv
 
 from environment import Environment
 from target import Target
@@ -12,26 +13,63 @@ def read_variables_from_file():
         variables = {}
         exec(variables_file.read(), variables)
         return variables
+    
+def save_data_to_file(variables, data, quadrant_data):
+    # Exclude unwanted built-in objects
+    filtered_variables = {key: value for key, value in variables.items() if not key.startswith("__")}
+    with open("simulation_data.csv", "a") as file:
+        writer = csv.writer(file)
+        if not variables.get("variables_saved", False):
+            # Write the variables at the top of the file
+            writer.writerow(["Variable", "Value"])
+            for variable, value in filtered_variables.items():
+                writer.writerow([variable, value])
+            variables["variables_saved"] = True
+
+        # Write the simulation data header if not written yet
+        if not variables.get("data_header_written", False):
+            headings = list(data.keys()) + ["Quadrant 1 Agents", "Quadrant 1 Resources",
+                                            "Quadrant 2 Agents", "Quadrant 2 Resources",
+                                            "Quadrant 3 Agents", "Quadrant 3 Resources",
+                                            "Quadrant 4 Agents", "Quadrant 4 Resources"]
+            writer.writerow(headings)
+            variables["data_header_written"] = True
+
+        # Write the simulation data for the current frame
+        row_data = list(data.values()) + [
+            quadrant_data[1]["num_agents"],
+            quadrant_data[1]["num_resources"],
+            quadrant_data[2]["num_agents"],
+            quadrant_data[2]["num_resources"],
+            quadrant_data[3]["num_agents"],
+            quadrant_data[3]["num_resources"],
+            quadrant_data[4]["num_agents"],
+            quadrant_data[4]["num_resources"],
+        ]
+        writer.writerow(row_data)
+
 
 def calculate_income_gini_coefficient(agents):
     if not agents or all(agent.income_collected == 0 for agent in agents):
         return "No income"  # Return 0 if there are no agents or if all agents have zero income_collected
     
-    total_fuel_collected = sum(agent.income_collected for agent in agents)
+    total_income_collected = sum(agent.income_collected for agent in agents)
     n = len(agents)
     agents_sorted_by_income = sorted(agents, key=lambda agent: agent.income_collected)
-    lorenz_curve = [sum(agent.income_collected for agent in agents_sorted_by_income[:i + 1]) / total_fuel_collected for i in range(n)]
+    lorenz_curve = [sum(agent.income_collected for agent in agents_sorted_by_income[:i + 1]) / total_income_collected for i in range(n)]
     area_under_lorenz_curve = sum((lorenz_curve[i - 1] + lorenz_curve[i]) * (1 / n) for i in range(1, n))
     gini_coefficient = 1 - 2 * area_under_lorenz_curve
     return gini_coefficient
 
 def calculate_wealth_gini_coefficient(agents):
     total_fuel = sum(agent.fuel for agent in agents)
-    n = len(agents)
     agents_sorted_by_wealth = sorted(agents, key=lambda agent: agent.fuel)
-    lorenz_curve = [sum(agent.fuel for agent in agents_sorted_by_wealth[:i + 1]) / total_fuel for i in range(n)]
+    fuel_data = [agent.fuel for agent in agents_sorted_by_wealth]
+    n = len(fuel_data)
+    lorenz_curve = [sum(fuel_data[:i + 1]) / total_fuel for i in range(n)]
     area_under_lorenz_curve = sum((lorenz_curve[i - 1] + lorenz_curve[i]) * (1 / n) for i in range(1, n))
     gini_coefficient = 1 - 2 * area_under_lorenz_curve
+    gini_coefficient = (gini_coefficient + 1) / 2
     return gini_coefficient
 
 community_fund = 0
@@ -68,6 +106,16 @@ def redistribute(agents, tax_cutoff_percentage, uniform_tax_distribution):
 
 pygame.init()
 
+
+# Create a dictionary to store data for each quadrant
+quadrant_data = {
+    1: {"num_agents": [], "num_resources": []},
+    2: {"num_agents": [], "num_resources": []},
+    3: {"num_agents": [], "num_resources": []},
+    4: {"num_agents": [], "num_resources": []},
+}
+
+# Read variables from the text file
 variables = read_variables_from_file()
 
 num_frames = variables.get("num_frames")
@@ -76,6 +124,7 @@ tax_cutoff_percentage = variables.get("tax_cutoff_percentage")
 inheritance_tax_rate = variables.get("inheritance_tax_rate")
 uniform_tax_distribution = variables.get("uniform_tax_distribution")
 productivity_rate = variables.get("productivity_rate")
+tolerance_rate = variables.get("tolerance_rate")
 grid = variables.get("grid")
 num_resources = variables.get("num_resources")
 num_traps = variables.get("num_traps")
@@ -111,6 +160,7 @@ if barrier_type == "dynamic":
     barriers = [(random.randint(0, grid_x - 1), random.randint(0, grid_y - 1)) for _ in range(num_barriers)]
 
 productivity_rate = productivity_rate / 100
+tolerance_rate = tolerance_rate / 100
 
 env = Environment(grid_x, grid_y, num_resources, num_traps, num_agents, agent_fuel_low_range,
                   agent_fuel_high_range, generation_period, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high)
@@ -168,6 +218,10 @@ LIGHT_GRAY = (249, 249, 249)
 # Run the simulation
 running = True
 while running:
+
+    # Clear the counts for each quadrant at the beginning of each frame update
+    quadrant_counts = {1: 0, 2: 0, 3: 0, 4: 0}
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -186,7 +240,6 @@ while running:
         running = False
 
     screen.fill(WHITE)
-
     # Move agents and check for trap collision
     for agent in agents:
         if agent.check_trap_collision(env.targets):
@@ -219,6 +272,10 @@ while running:
             env_agent_movements_counter = round(env.agent_movements_counter)
             env.generate_single_target(env.agent_movements_counter)
             env.agent_movements_counter = 0
+
+
+    income_gini_coefficient = calculate_income_gini_coefficient(agents)
+    wealth_gini_coefficient = calculate_wealth_gini_coefficient(agents)
 
     # Draw barriers
     for barrier_cell in barriers:
@@ -257,11 +314,6 @@ while running:
     env.time += 1
 
     if time % tax_frames == 0:
-        income_gini_coefficient = calculate_income_gini_coefficient(agents)
-        wealth_gini_coefficient = calculate_wealth_gini_coefficient(agents)
-        print("Income Gini Coefficient:", income_gini_coefficient)
-        print("Wealth Gini Coefficient:", wealth_gini_coefficient)
-
         # Update the assignment with the function call
         redistribute(agents, tax_cutoff_percentage, uniform_tax_distribution)
 
@@ -269,5 +321,57 @@ while running:
     # Print the counts of each agent type
     # agent_counts = env.count_agents_by_type()
     # print("Agent Counts:", agent_counts)
+    total_fuel = 0
+    total_morality = 0
+    total_intelligence = 0
+    total_age = 0
+    total_will = 0
+    total_age = 0
+
+
+    for agent in agents:
+        total_fuel += agent.fuel
+        total_morality += agent.morality
+        total_intelligence += agent.intelligence
+        total_age += agent.age
+        total_will += agent.will
+        total_age += agent.age
+
+        # Count the number of agents in each quadrant
+        grid_x, grid_y = env.grid_size
+        quadrant_num = env.get_quadrant_number(agent.x, agent.y, grid_x, grid_y)
+        quadrant_counts[quadrant_num] += 1
+
+        
+
+    average_fuel = total_fuel/len(agents)
+    average_morality = total_morality/len(agents)
+    average_intelligence = total_intelligence/len(agents)
+    average_age = total_age/len(agents)
+    average_will = total_will/len(agents)
+    average_age = total_age/len(agents)
+
+    # Update the quadrant_data dictionary with the current frame's counts
+    for quadrant_num, num_agents in quadrant_counts.items():
+        quadrant_data[quadrant_num]["num_agents"] = num_agents
+        quadrant_data[quadrant_num]["num_resources"] = env.count_resources_in_quadrant(quadrant_num)
+
+    # Prepare data for recording
+    data = {
+        "Time": time,
+        "Income Gini Coefficient": income_gini_coefficient,
+        "Wealth Gini Coefficient": wealth_gini_coefficient,
+        "Average Fuel": average_fuel,
+        "Average Morality": average_morality,
+        "Average Intelligence": average_intelligence,
+        "Average Age": average_age,
+        "Average Will": average_will,
+        "Average Age": average_age,
+    }
+
+
+    # Record the data to the text file
+    save_data_to_file(variables, data, quadrant_data)
+
 
 pygame.quit()

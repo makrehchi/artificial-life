@@ -1,5 +1,5 @@
 grid = (100, 100)
-num_resources = 75
+num_resources = 0
 num_traps = 10
 barrier_type = "dynamic"
 num_barriers = 20
@@ -9,8 +9,8 @@ barriers = [
     *[(x, 60) for x in range(100, 120)],
     *[(x, 70) for x in range(140, 160)],
 ]
-agent_fuel_low_range = 200
-agent_fuel_high_range = 300
+agent_fuel_low_range = 10
+agent_fuel_high_range = 30000
 intelligence_range_low = 5
 intelligence_range_high = 15
 generation_period = 999999
@@ -28,7 +28,7 @@ num_agents_D = 12
 assign_agents_randomly = True
 num_agents_random = 20
 
-num_frames = 3000
+num_frames = 1000
 
 tax_frames = 200
 
@@ -39,3 +39,5 @@ uniform_tax_distribution = True
 inheritance_tax_rate = 20
 
 productivity_rate = 75
+
+tolerance_rate = 50

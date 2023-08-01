@@ -27,6 +27,7 @@ class Agent:
         self.resources_collected = 0
         self.income_collected = 0
         self.movement_counter = 0
+        self.quadrant = 0
 
     def move_towards_quarter(self, target_quarter):
         if target_quarter == 1:
@@ -84,7 +85,7 @@ class Agent:
             trap_x, trap_y = self.x, self.y
             self.environment.remove_target(trap_x, trap_y)  # Remove the trap from the environment.
             return  # The agent cannot move if it's trapped.
-
+        
 
         if random.random() <= self.morality:
             self.help_trapped_agent()
@@ -231,28 +232,28 @@ class Agent:
                 elif self.resource_class == 'B' and target.resource_class in ('B', 'C', 'D'):
                     self.fuel += round(target.size * self.energy)
                     self.income_collected += round(target.size * self.energy)
-                    # elf.resources_collected += 1
-                    # if self.resources_collected >= 10:
-                    #     self.resources_collected = 0
-                    #     self.resource_class = 'A'
+                    self.resources_collected += 1
+                    if self.resources_collected >= 5:
+                        self.resources_collected = 0
+                        self.resource_class = 'A'
                     self.environment.targets.remove(target)
                     break
                 elif self.resource_class == 'C' and target.resource_class in ('C', 'D'):
                     self.fuel += round(target.size * self.energy)
                     self.income_collected += round(target.size * self.energy)
-                    # self.resources_collected += 1
-                    # if self.resources_collected >= 10:
-                    #     self.resources_collected = 0
-                    #     self.resource_class = 'B'
+                    self.resources_collected += 1
+                    if self.resources_collected >= 5:
+                        self.resources_collected = 0
+                        self.resource_class = 'B'
                     self.environment.targets.remove(target)
                     break
                 elif self.resource_class == 'D' and target.resource_class == 'D':
                     self.fuel += round(target.size * self.energy)
                     self.income_collected += round(target.size * self.energy)
-                    # self.resources_collected += 1
-                    # if self.resources_collected >= 10:
-                    #     self.resources_collected = 0
-                    #     self.resource_class = 'C'
+                    self.resources_collected += 1
+                    if self.resources_collected >= 5:
+                        self.resources_collected = 0
+                        self.resource_class = 'C'
                     self.environment.targets.remove(target)
                     break
                 else:
@@ -270,4 +271,15 @@ class Agent:
         speed = (max_fuel - self.fuel) / max_fuel
         return speed
     
-    
+    def calculate_quadrant(self):
+        mid_x = self.environment.grid_x // 2
+        mid_y = self.environment.grid_y // 2
+
+        if self.x < mid_x and self.y < mid_y:
+            return 1
+        elif self.x >= mid_x and self.y < mid_y:
+            return 2
+        elif self.x < mid_x and self.y >= mid_y:
+            return 3
+        else:
+            return 4
