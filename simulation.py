@@ -218,7 +218,6 @@ LIGHT_GRAY = (249, 249, 249)
 # Run the simulation
 running = True
 while running:
-
     # Clear the counts for each quadrant at the beginning of each frame update
     quadrant_counts = {1: 0, 2: 0, 3: 0, 4: 0}
 
@@ -327,6 +326,18 @@ while running:
     total_age = 0
     total_will = 0
     total_age = 0
+    trapped_agents = 0
+    
+    # Define variables to store counts of agents and resources for each class (A, B, C, D)
+    num_agents_A = 0
+    num_agents_B = 0
+    num_agents_C = 0
+    num_agents_D = 0
+
+    num_resources_A = 0
+    num_resources_B = 0
+    num_resources_C = 0
+    num_resources_D = 0
 
 
     for agent in agents:
@@ -337,19 +348,46 @@ while running:
         total_will += agent.will
         total_age += agent.age
 
+        # Count the number of trapped agents
+        if agent.is_trapped:
+            trapped_agents += 1
+
+
         # Count the number of agents in each quadrant
         grid_x, grid_y = env.grid_size
         quadrant_num = env.get_quadrant_number(agent.x, agent.y, grid_x, grid_y)
         quadrant_counts[quadrant_num] += 1
 
-        
+        # Update the counts of agents in each class
+        if agent.resource_class == 'A':
+            num_agents_A += 1
+        elif agent.resource_class == 'B':
+            num_agents_B += 1
+        elif agent.resource_class == 'C':
+            num_agents_C += 1
+        elif agent.resource_class == 'D':
+            num_agents_D += 1
 
-    average_fuel = total_fuel/len(agents)
-    average_morality = total_morality/len(agents)
-    average_intelligence = total_intelligence/len(agents)
-    average_age = total_age/len(agents)
-    average_will = total_will/len(agents)
-    average_age = total_age/len(agents)
+    for target in targets:
+        # Update the counts of resources in each class
+        if target.is_resource:
+            if target.resource_class == 'A':
+                num_resources_A += 1
+            elif target.resource_class == 'B':
+                num_resources_B += 1
+            elif target.resource_class == 'C':
+                num_resources_C += 1
+            elif target.resource_class == 'D':
+                num_resources_D += 1
+
+    # Calculate averages
+    average_fuel = round(total_fuel / len(agents), 2)
+    average_morality = round(total_morality / len(agents), 2)
+    average_intelligence = round(total_intelligence / len(agents), 2)
+    average_age = round(total_age / len(agents), 2)
+    average_will = round(total_will / len(agents), 2)
+    average_age = round(total_age / len(agents), 2)
+
 
     # Update the quadrant_data dictionary with the current frame's counts
     for quadrant_num, num_agents in quadrant_counts.items():
@@ -367,6 +405,15 @@ while running:
         "Average Age": average_age,
         "Average Will": average_will,
         "Average Age": average_age,
+        "Trapped Agents": trapped_agents,
+        "Number of Agents A": num_agents_A,
+        "Number of Agents B": num_agents_B,
+        "Number of Agents C": num_agents_C,
+        "Number of Agents D": num_agents_D,
+        "Number of Resources A": num_resources_A,
+        "Number of Resources B": num_resources_B,
+        "Number of Resources C": num_resources_C,
+        "Number of Resources D": num_resources_D,
     }
 
 
