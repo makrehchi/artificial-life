@@ -1,43 +1,71 @@
+# Size of the environment
 grid = (100, 100)
+
+# The number of resources in the environment
 num_resources = 75
+
+# The number of traps in the environment
 num_traps = 10
+
+# Can be set to static or dynamic for how barriers should be generated in the environment. Dynamic are randomly generated and static are user set coordinates
 barrier_type = "dynamic"
+
+# The number of barriers in the environment
 num_barriers = 20
+
+# If static, then user sets the coordinates of barriers
 barriers = [
     *[(x, 40) for x in range(20, 40)],
     *[(x, 50) for x in range(60, 80)],
     *[(x, 60) for x in range(100, 120)],
     *[(x, 70) for x in range(140, 160)],
 ]
-agent_fuel_low_range = 10
-agent_fuel_high_range = 30000
+
+# The range in which agent's fuel is randomly generated
+agent_fuel_low_range = 200
+agent_fuel_high_range = 400
+
+# The range in which agent's intelligence is randomly generated
 intelligence_range_low = 5
 intelligence_range_high = 15
-generation_period = 999999
-age_range_low = 100
-age_range_high = 300
+
+# The range in which agent's age is randomly generated
+age_range_low = 400
+age_range_high = 800
+
+# The range in which the target sizes (resources and traps) are randomly generated
 target_size_low = 50
 target_size_high = 100
 
+# Set this variable to True if you want to assign agents randomly, False otherwise
+assign_agents_randomly = True
+
+# The number of randomly generated agents
+num_agents_random = 20
+
+# The number of agents in each class if 'assign_agents_randomly' is set to false
 num_agents_A = 10
 num_agents_B = 5
 num_agents_C = 5
 num_agents_D = 12
 
-# Set this variable to True if you want to assign agents randomly, False otherwise.
-assign_agents_randomly = True
-num_agents_random = 20
+# The number of frames the simulation should run for
+num_frames = 3000
 
-num_frames = 1000
-
+# The length of period after which income tax is collected and refunded
 tax_frames = 200
 
-# What percentage of the population consititutes as low income
-tax_cutoff_percentage = 50
+# The percentage of an agent's income that is deducted as tax. (Ex: 50 means that half of the agents income is collected for tax)
+tax_rate = 50
+
+# If true then all agents get refunded an equal amount, if false then agents are refunded a disproportionate amount based on income
 uniform_tax_distribution = True
 
+# The percentage of an agent's wealth or resources that is taken as an inheritance tax. (Ex: 20 means that 20% of the inheritance will be deducted as tax)
 inheritance_tax_rate = 20
 
+# The percentage of agent movement that is turned into resources
 productivity_rate = 75
 
+# The change that an insurgence occurs
 tolerance_rate = 50

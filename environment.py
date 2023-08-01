@@ -6,7 +6,7 @@ from target import Target
 
 class Environment:
     def __init__(self, grid_x, grid_y, num_resources, num_traps, num_agents, agent_fuel_low_range,
-                 agent_fuel_high_range, generation_period, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high):
+                 agent_fuel_high_range, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high):
         self.grid_x = grid_x
         self.grid_y = grid_y
         self.grid_size = (grid_x, grid_y)
@@ -15,7 +15,6 @@ class Environment:
         self.num_agents = num_agents
         self.agent_fuel_low_range = agent_fuel_low_range
         self.agent_fuel_high_range = agent_fuel_high_range
-        self.generation_period = generation_period
         self.time = 0
         self.agents = []
         self.targets = []

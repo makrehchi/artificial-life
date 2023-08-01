@@ -1,4 +1,3 @@
-# agent becoming higher class
 # insurgence
 
 
@@ -120,7 +119,7 @@ variables = read_variables_from_file()
 
 num_frames = variables.get("num_frames")
 tax_frames = variables.get("tax_frames")
-tax_cutoff_percentage = variables.get("tax_cutoff_percentage")
+tax_cutoff_percentage = variables.get("tax_rate")
 inheritance_tax_rate = variables.get("inheritance_tax_rate")
 uniform_tax_distribution = variables.get("uniform_tax_distribution")
 productivity_rate = variables.get("productivity_rate")
@@ -134,7 +133,6 @@ barriers = variables.get("barriers")
 num_agents = variables.get("num_agents")
 agent_fuel_low_range = variables.get("agent_fuel_low_range")
 agent_fuel_high_range = variables.get("agent_fuel_high_range")
-generation_period = variables.get("generation_period")
 age_range_low = variables.get("age_range_low")
 age_range_high = variables.get("age_range_high")
 intelligence_range_low = variables.get("intelligence_range_low")
@@ -163,7 +161,7 @@ productivity_rate = productivity_rate / 100
 tolerance_rate = tolerance_rate / 100
 
 env = Environment(grid_x, grid_y, num_resources, num_traps, num_agents, agent_fuel_low_range,
-                  agent_fuel_high_range, generation_period, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high)
+                  agent_fuel_high_range, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high)
 
 def generate_agents_by_specified_count(num_agents_A, num_agents_B, num_agents_C, num_agents_D):
     agents = []
