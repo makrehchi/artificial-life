@@ -29,7 +29,7 @@ agent_fuel_high_range = 400
 intelligence_range_low = 5
 intelligence_range_high = 15
 
-# The range in which agent's age is randomly generated
+# The range in which agent's life span is randomly generated
 age_range_low = 400
 age_range_high = 800
 

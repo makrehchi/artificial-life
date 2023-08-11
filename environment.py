@@ -40,6 +40,9 @@ class Environment:
     #
     # Generating agents, targets and barriers in the environment
     #
+
+    # Generate agents with unique IDs, given class, random coordinates, age of 0, and random fuel, age, intelligence, will, and morality values based on the ranges provided.
+    # Used at the beginning of the simulation to generate the initial agents
     def generate_agents(self, resource_class):
         agent_id = self.get_unique_agent_id()
         x = random.randint(0, self.grid_x - 1)
@@ -59,7 +62,9 @@ class Environment:
         agent = Agent(agent_id, x, y, self.time, fuel, age, max_age, intelligence, morality, will, resource_class, energy, waste, fat, self)
         self.agents.append(agent)
         agent.birth_time = self.time
-
+    
+    # Generate single agent with unique IDs, random class, random coordinates, age of 0, and random fuel, age, intelligence, will, and morality values based on the ranges provided.
+    # Used after agents die to generate new agents
     def generate_single_agent(self, fuel):
         agent_id = self.get_unique_agent_id()
         x = random.randint(0, self.grid_x - 1)
@@ -80,6 +85,8 @@ class Environment:
         self.agents.append(agent)
         agent.birth_time = self.time
 
+    # generate resources with random coordinates, size, and resource class 
+    # Used at the beginning of the simulation to generate the initial resources
     def generate_targets(self):
         for _ in range(self.num_resources):
             x, y = self.get_valid_target_coordinates()
@@ -88,6 +95,7 @@ class Environment:
             target = Target(x, y, is_resource=True, size=size, resource_class=resource_class)
             self.targets.append(target)
 
+    # generate single resource with random coordinates, size, and resource class
     def generate_single_target(self):
         x, y = self.get_valid_target_coordinates()
         size = random.randint(self.target_size_low, self.target_size_high)
@@ -95,12 +103,16 @@ class Environment:
         target = Target(x, y, is_resource=True, size=size, resource_class=resource_class)
         self.targets.append(target)
 
+    # generate single resource with specificed size and random coordinates and resource class
+    # Used to generate resources based on agent movement
     def generate_single_target(self, size):
         x, y = self.get_valid_target_coordinates()
         resource_class = random.choice(['A', 'B', 'C', 'D'])
         target = Target(x, y, is_resource=True, size=size, resource_class=resource_class)
         self.targets.append(target) 
 
+    # Generate traps with random coordinates and size
+    # Used at the beginning of the simulation to generate the initial traps
     def generate_traps(self):
         for _ in range(self.num_traps):
             x, y = self.get_valid_target_coordinates()
@@ -108,6 +120,7 @@ class Environment:
             target = Target(x, y, is_resource=False, size=size)
             self.targets.append(target)
 
+    # Generate unique ID consisting of 3 uppercase letters for each agent
     def get_unique_agent_id(self):
         agent_id_length = 3
         characters = string.ascii_uppercase
@@ -117,22 +130,26 @@ class Environment:
             agent_id = ''.join(random.choices(characters, k=agent_id_length))
         return agent_id
     
+    # Used to make sure that the coordinates of the agent or target are not already occupied by another agent, target or barrier
     def get_valid_target_coordinates(self):
         while True:
             x = random.randint(0, self.grid_x - 1)
             y = random.randint(0, self.grid_y - 1)
             if not self.is_barrier(x, y) and not self.is_target_at(x, y):
                 return x, y
-            
+    
+    # Returns coordinates of barriers
     def is_barrier(self, x, y):
         return (x, y) in self.barriers
     
+    # Returns coordinates of targets
     def is_target_at(self, x, y):
         for target in self.targets:
             if target.x == x and target.y == y:
                 return True
         return False
     
+    # Remove target from the environment after it has been collected by an agent
     def remove_target(self, x, y):
         target_to_remove = None
         for target in self.targets:
@@ -141,17 +158,13 @@ class Environment:
                 break
         if target_to_remove:
             self.targets.remove(target_to_remove)
+    
 
-    def count_agents_by_type(self):
-        agent_counts = {'A': 0, 'B': 0, 'C': 0, 'D': 0}
-        for agent in self.agents:
-            agent_counts[agent.resource_class] += 1
-        return agent_counts
-    
-    
     #
     # Quadrant data to determine the number of agents and resources in each quadrant
     #
+
+    # Calculate quarter with the most targets to allow agents to use this information to as a heuristic to determine their movement
     def get_quarter_with_max_targets(self):
         quarter_counts = [0, 0, 0, 0]
         mid_x = self.grid_x // 2
@@ -173,6 +186,8 @@ class Environment:
         else:
             max_quarter = quarter_counts.index(max(quarter_counts)) + 1
         return max_quarter
+    
+    # Generate a random point in a specific quarter for resource generation based on key value
     def get_random_point_in_quarter(self, quarter):
         mid_x = self.grid_x // 2
         mid_y = self.grid_y // 2
@@ -189,6 +204,8 @@ class Environment:
             x = random.randint(mid_x, self.grid_x - 1)
             y = random.randint(mid_y, self.grid_y - 1)
         return x, y
+    
+    # Get the quadrant number based on the coordinates
     def get_quadrant_number(self, x, y, grid_x, grid_y):
         grid_x, grid_y = self.grid_size
         half_x, half_y = grid_x // 2, grid_y // 2
@@ -202,6 +219,8 @@ class Environment:
                 return 2
             else:
                 return 4
+    
+    # Get the number of resources in each quadrant
     def count_resources_in_quadrant(self, quadrant_num):
         half_x = self.grid_x // 2
         half_y = self.grid_y // 2
@@ -224,3 +243,10 @@ class Environment:
             if x_start <= target.x < x_end and y_start <= target.y < y_end and target.is_resource:
                 num_resources_in_quadrant += 1
         return num_resources_in_quadrant
+    
+    # Get the number of based on resource class
+    def count_agents_by_type(self):
+        agent_counts = {'A': 0, 'B': 0, 'C': 0, 'D': 0}
+        for agent in self.agents:
+            agent_counts[agent.resource_class] += 1
+        return agent_counts
