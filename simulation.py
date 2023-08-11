@@ -1,6 +1,3 @@
-# commenting & modularizing code & changing variable names to be more appropriate
-# reporting & data analysis
-
 # importing libraries and modules
 import pygame, random, csv, datetime
 from environment import Environment
