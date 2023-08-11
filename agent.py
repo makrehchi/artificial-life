@@ -134,12 +134,12 @@ class Agent:
             other_agent = None
             for agent in self.environment.agents:
 
-                # Check if the agent with the lower intelligence is in range and has less fuel, then an insurgence will occur
+                # Check if the agent with the lower intelligence is in range and has less fuel, then an insurgency will occur
                 if agent != self and agent.intelligence < self.intelligence and self.is_in_range(agent.x, agent.y) and agent.fuel > self.fuel:
                     other_agent = agent
                     break
             if other_agent:
-                self.insurgence(other_agent)
+                self.insurgency(other_agent)
 
         # If the agent has high moral value, then they will help trapped agents
         if random.random() <= self.morality:
@@ -313,7 +313,7 @@ class Agent:
     # If the agent has a lower intelligence and higher fuel, they will attack the agent with higher intelligence and higher fuel
     # The attacking agent will take a random percentage of fuel from the other agent
     # The agent being attacked will also lose a random percentage of their life span
-    def insurgence(self, other_agent):
+    def insurgency(self, other_agent):
         self.attacker = True
         other_agent.attacked = True
         attack_strength = random.uniform(0.1, 0.5)  # Define the attack strength range here
