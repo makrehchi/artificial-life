@@ -1,22 +1,26 @@
-# insurgence
-
-
-import pygame, random, os, csv
+import pygame, random, csv, datetime
 
 from environment import Environment
 from target import Target
 
-# Read variables from a text file
+# Read variables from a text file and return a dictionary of the variables and their values
 def read_variables_from_file():
     with open("variables.txt", "r") as variables_file:
         variables = {}
         exec(variables_file.read(), variables)
         return variables
     
+# Get the current date and time
+current_datetime = datetime.datetime.now()
+date_time_str = current_datetime.strftime("%Y-%m-%d__%H-%M-%S")
+file_name = f"data_{date_time_str}.csv"
+
+# Save the simulation data to a CSV file
 def save_data_to_file(variables, data, quadrant_data):
     # Exclude unwanted built-in objects
     filtered_variables = {key: value for key, value in variables.items() if not key.startswith("__")}
-    with open("simulation_data.csv", "a") as file:
+
+    with open(file_name, "a") as file:
         writer = csv.writer(file)
         if not variables.get("variables_saved", False):
             # Write the variables at the top of the file
@@ -47,7 +51,7 @@ def save_data_to_file(variables, data, quadrant_data):
         ]
         writer.writerow(row_data)
 
-
+# Calculate the Gini coefficient for income_collected
 def calculate_income_gini_coefficient(agents):
     if not agents or all(agent.income_collected == 0 for agent in agents):
         return "No income"  # Return 0 if there are no agents or if all agents have zero income_collected
@@ -60,6 +64,7 @@ def calculate_income_gini_coefficient(agents):
     gini_coefficient = 1 - 2 * area_under_lorenz_curve
     return gini_coefficient
 
+# Calculate the Gini coefficient for fuel
 def calculate_wealth_gini_coefficient(agents):
     total_fuel = sum(agent.fuel for agent in agents)
     agents_sorted_by_wealth = sorted(agents, key=lambda agent: agent.fuel)
@@ -68,14 +73,17 @@ def calculate_wealth_gini_coefficient(agents):
     lorenz_curve = [sum(fuel_data[:i + 1]) / total_fuel for i in range(n)]
     area_under_lorenz_curve = sum((lorenz_curve[i - 1] + lorenz_curve[i]) * (1 / n) for i in range(1, n))
     gini_coefficient = 1 - 2 * area_under_lorenz_curve
-    gini_coefficient = (gini_coefficient + 1) / 2
+    gini_coefficient = round((gini_coefficient + 1) / 2, 2)
     return gini_coefficient
 
+# Initialize the community fund
 community_fund = 0
 
+# Calculate the total fuel of all agents
 def calculate_total_fuel(agents):
     return sum(agent.fuel for agent in agents)
 
+# Collect tax from agents and redistribute it to other agents
 def redistribute(agents, tax_cutoff_percentage, uniform_tax_distribution):
     global community_fund
     total_fuel_before_tax = calculate_total_fuel(agents)
@@ -102,9 +110,8 @@ def redistribute(agents, tax_cutoff_percentage, uniform_tax_distribution):
             redistribution_amount = int(community_fund * proportion)
             agent.fuel += redistribution_amount
 
-
+# Initialize pygame
 pygame.init()
-
 
 # Create a dictionary to store data for each quadrant
 quadrant_data = {
@@ -117,6 +124,7 @@ quadrant_data = {
 # Read variables from the text file
 variables = read_variables_from_file()
 
+# Assign the variables to their respective values from the dictionary returned by read_variables_from_file()
 num_frames = variables.get("num_frames")
 tax_frames = variables.get("tax_frames")
 tax_cutoff_percentage = variables.get("tax_rate")
@@ -147,22 +155,29 @@ num_agents_D = variables.get("num_agents_D")
 num_agents_random = variables.get("num_agents_random")
 assign_agents_randomly = variables.get("assign_agents_randomly")
 
+# If assign_agents_randomly is True, use num_agents_random as the number of agents
 if assign_agents_randomly:
     num_agents = num_agents_random
 else:
     num_agents = num_agents_A + num_agents_B + num_agents_C + num_agents_D
 
+# Initialize the time variable
 time = 0
+
+# If the barrier type is dynamic, generate random barriers
 grid_x, grid_y = grid
 if barrier_type == "dynamic":
     barriers = [(random.randint(0, grid_x - 1), random.randint(0, grid_y - 1)) for _ in range(num_barriers)]
 
+# Convert the productivity_rate and tolerance_rate to a decimal
 productivity_rate = productivity_rate / 100
 tolerance_rate = tolerance_rate / 100
 
+# Create an environment object
 env = Environment(grid_x, grid_y, num_resources, num_traps, num_agents, agent_fuel_low_range,
                   agent_fuel_high_range, barriers, age_range_low, age_range_high, intelligence_range_low, intelligence_range_high, target_size_low, target_size_high)
 
+# Generate agents based on the user-specified counts for each class
 def generate_agents_by_specified_count(num_agents_A, num_agents_B, num_agents_C, num_agents_D):
     agents = []
     agents.extend([('A', num_agents_A), ('B', num_agents_B), ('C', num_agents_C), ('D', num_agents_D)])
@@ -180,6 +195,7 @@ else:
     # Generate agents based on user-specified counts
     generate_agents_by_specified_count(num_agents_A, num_agents_B, num_agents_C, num_agents_D)
 
+# Generate targets and traps in the environment
 env.generate_targets()
 env.generate_traps()
 
@@ -190,9 +206,11 @@ total_redistributed_fuel = 0
 agents = env.agents
 targets = env.targets
 
+# Scale the grid size by 7 to make the simulation window larger
 scaled_grid_x = grid_x * 7
 scaled_grid_y = grid_y * 7
 
+# Initialize the pygame window
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((scaled_grid_x, scaled_grid_y))
 pygame.display.set_caption("Grid Simulation")
@@ -231,8 +249,11 @@ while running:
                 resource_class = random.choice(['A', 'B', 'C', 'D'])
                 target = Target(x, y, is_resource=True, size=size, resource_class=resource_class)
                 env.targets.append(target)
-    
+
+    # Update the number of frames remaining
     num_frames -= 1
+
+    # Stop the simulation if there are no more frames remaining
     if num_frames <= 0:
         running = False
 
@@ -252,15 +273,21 @@ while running:
         # Collect fuel if there is a resource/target on the current block
         agent.collect_fuel()
 
+        # Check if the agent is ill, or reached the maximum age, or ran out of fuel and remove the agent from the environment
         if (agent.fuel <= 0) or (agent.age >= agent.max_age) or (agent.is_ill):
             agent.death_time = time
             if agent in agents:
                 agents.remove(agent)
+
+            # Give the new agent more fuel if its below 20 fuel
             if agent.fuel <= 20:
                 agent.fuel += 60
+            # Tax them if its above 20 fuel
             else:
-                agent.fuel = agent.fuel - (agent.fuel*(inheritance_tax_rate/100))
-                #community_fund += agent.fuel*(tax_cutoff_percentage/100)
+                interhitance_tax = (agent.fuel*(inheritance_tax_rate/100))
+                agent.fuel = agent.fuel - interhitance_tax
+                community_fund += interhitance_tax
+            # Generate a new agent
             env.generate_single_agent(agent.fuel)
 
     # generate new targets based on agent productivity
@@ -270,7 +297,7 @@ while running:
             env.generate_single_target(env.agent_movements_counter)
             env.agent_movements_counter = 0
 
-
+    # Call the gini coefficient functions and store the values into variables
     income_gini_coefficient = calculate_income_gini_coefficient(agents)
     wealth_gini_coefficient = calculate_wealth_gini_coefficient(agents)
 
@@ -304,7 +331,7 @@ while running:
         screen.blit(text_surface, text_rect)
 
     pygame.display.flip()
-    clock.tick(20)
+    clock.tick(40)
 
     # Increment time
     time += 1
@@ -314,10 +341,7 @@ while running:
         # Update the assignment with the function call
         redistribute(agents, tax_cutoff_percentage, uniform_tax_distribution)
 
-
-    # Print the counts of each agent type
-    # agent_counts = env.count_agents_by_type()
-    # print("Agent Counts:", agent_counts)
+    # Initialize variables that will be used to calculate averages
     total_fuel = 0
     total_morality = 0
     total_intelligence = 0
@@ -331,13 +355,12 @@ while running:
     num_agents_B = 0
     num_agents_C = 0
     num_agents_D = 0
-
     num_resources_A = 0
     num_resources_B = 0
     num_resources_C = 0
     num_resources_D = 0
 
-
+    # Calculate the total fuel, morality, intelligence, age, and will of all agents
     for agent in agents:
         total_fuel += agent.fuel
         total_morality += agent.morality
@@ -378,7 +401,7 @@ while running:
             elif target.resource_class == 'D':
                 num_resources_D += 1
 
-    # Calculate averages
+    # Calculate averages for fuel, morality, intelligence, age, and will
     average_fuel = round(total_fuel / len(agents), 2)
     average_morality = round(total_morality / len(agents), 2)
     average_intelligence = round(total_intelligence / len(agents), 2)
@@ -414,8 +437,7 @@ while running:
         "Number of Resources D": num_resources_D,
     }
 
-
-    # Record the data to the text file
+    # Record the data to the CSV file
     save_data_to_file(variables, data, quadrant_data)
 
 

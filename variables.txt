@@ -41,7 +41,7 @@ target_size_high = 100
 assign_agents_randomly = True
 
 # The number of randomly generated agents
-num_agents_random = 20
+num_agents_random = 50
 
 # The number of agents in each class if 'assign_agents_randomly' is set to false
 num_agents_A = 10
