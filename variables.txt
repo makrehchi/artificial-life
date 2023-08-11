@@ -67,5 +67,5 @@ inheritance_tax_rate = 20
 # The percentage of agent movement that is turned into resources
 productivity_rate = 75
 
-# The change that an insurgence occurs
-tolerance_rate = 50
+# Controls the rate of insurgence occuring. The higher the tolerance rate, the less likely insurgence is to occur
+tolerance_rate = 70
